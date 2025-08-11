@@ -2,11 +2,14 @@ import { BusinessSubmissionForm } from "@/components/city-updates/BusinessSubmis
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 
+import { BusinessSubmission } from "@/types/business";
+
 interface BusinessSubmissionPageProps {
   onBack?: () => void;
+  onSubmitSuccess?: (submission: BusinessSubmission) => void;
 }
 
-export function BusinessSubmissionPage({ onBack }: BusinessSubmissionPageProps) {
+export function BusinessSubmissionPage({ onBack, onSubmitSuccess }: BusinessSubmissionPageProps) {
   return (
     <div className="flex flex-col h-full">
       <div className="bg-background border-b">
@@ -35,7 +38,7 @@ export function BusinessSubmissionPage({ onBack }: BusinessSubmissionPageProps) 
               </p>
             </div>
             
-            <BusinessSubmissionForm />
+            <BusinessSubmissionForm onSubmitSuccess={onSubmitSuccess} />
           </div>
         </div>
       </div>

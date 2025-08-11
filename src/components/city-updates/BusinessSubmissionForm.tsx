@@ -2,7 +2,11 @@ import { useState } from 'react';
 import { useCity } from '@/contexts/CityContext';
 import type { BusinessSubmission } from '@/types/business';
 
-export function BusinessSubmissionForm() {
+interface BusinessSubmissionFormProps {
+  onSubmitSuccess?: (submission: BusinessSubmission) => void;
+}
+
+export function BusinessSubmissionForm({ onSubmitSuccess }: BusinessSubmissionFormProps) {
   const { selectedCity } = useCity();
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -26,10 +30,6 @@ export function BusinessSubmissionForm() {
         startDate: formData.get('startDate') as string,
         endDate: formData.get('endDate') as string,
         address: formData.get('address') as string,
-        location: {
-          lat: parseFloat(formData.get('lat') as string),
-          lng: parseFloat(formData.get('lng') as string)
-        },
         contactInfo: {
           phone: formData.get('phone') as string,
           email: formData.get('email') as string,
@@ -43,6 +43,9 @@ export function BusinessSubmissionForm() {
       console.log('Submission received:', submission);
       setSuccess(true);
       form.reset();
+      if (onSubmitSuccess) {
+        onSubmitSuccess(submission);
+      }
     } catch (err) {
       console.error('Error submitting form:', err);
       setError('Failed to submit business promotion');
@@ -77,7 +80,7 @@ export function BusinessSubmissionForm() {
             name="businessName"
             id="businessName"
             required
-            className="mt-1 block w-full rounded border-gray-300 shadow-sm"
+            className="mt-1 block w-full rounded border-black shadow-sm text-black"
           />
         </div>
 
@@ -90,7 +93,7 @@ export function BusinessSubmissionForm() {
             id="description"
             required
             rows={3}
-            className="mt-1 block w-full rounded border-gray-300 shadow-sm"
+            className="mt-1 block w-full rounded border-black shadow-sm text-black"
           />
         </div>
 
@@ -102,7 +105,7 @@ export function BusinessSubmissionForm() {
             name="category"
             id="category"
             required
-            className="mt-1 block w-full rounded border-gray-300 shadow-sm"
+            className="mt-1 block w-full rounded border-black shadow-sm text-black"
           >
             <option value="Retail">Retail</option>
             <option value="Food & Beverage">Food & Beverage</option>
@@ -120,7 +123,7 @@ export function BusinessSubmissionForm() {
             name="promotionType"
             id="promotionType"
             required
-            className="mt-1 block w-full rounded border-gray-300 shadow-sm"
+            className="mt-1 block w-full rounded border-black shadow-sm text-black"
           >
             <option value="DISCOUNT">Discount</option>
             <option value="EVENT">Event</option>
@@ -138,7 +141,7 @@ export function BusinessSubmissionForm() {
               name="startDate"
               id="startDate"
               required
-              className="mt-1 block w-full rounded border-gray-300 shadow-sm"
+              className="mt-1 block w-full rounded border-black shadow-sm text-black"
             />
           </div>
 
@@ -151,7 +154,7 @@ export function BusinessSubmissionForm() {
               name="endDate"
               id="endDate"
               required
-              className="mt-1 block w-full rounded border-gray-300 shadow-sm"
+              className="mt-1 block w-full rounded border-black shadow-sm text-black"
             />
           </div>
         </div>
@@ -165,39 +168,10 @@ export function BusinessSubmissionForm() {
             name="address"
             id="address"
             required
-            className="mt-1 block w-full rounded border-gray-300 shadow-sm"
+            className="mt-1 block w-full rounded border-black shadow-sm text-black"
           />
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label htmlFor="lat" className="block text-sm font-medium">
-              Latitude
-            </label>
-            <input
-              type="number"
-              step="any"
-              name="lat"
-              id="lat"
-              required
-              className="mt-1 block w-full rounded border-gray-300 shadow-sm"
-            />
-          </div>
-
-          <div>
-            <label htmlFor="lng" className="block text-sm font-medium">
-              Longitude
-            </label>
-            <input
-              type="number"
-              step="any"
-              name="lng"
-              id="lng"
-              required
-              className="mt-1 block w-full rounded border-gray-300 shadow-sm"
-            />
-          </div>
-        </div>
 
         <div>
           <label htmlFor="phone" className="block text-sm font-medium">
@@ -208,7 +182,7 @@ export function BusinessSubmissionForm() {
             name="phone"
             id="phone"
             required
-            className="mt-1 block w-full rounded border-gray-300 shadow-sm"
+            className="mt-1 block w-full rounded border-black shadow-sm text-black"
           />
         </div>
 
@@ -221,7 +195,7 @@ export function BusinessSubmissionForm() {
             name="email"
             id="email"
             required
-            className="mt-1 block w-full rounded border-gray-300 shadow-sm"
+            className="mt-1 block w-full rounded border-black shadow-sm text-black"
           />
         </div>
 
@@ -233,7 +207,7 @@ export function BusinessSubmissionForm() {
             type="url"
             name="website"
             id="website"
-            className="mt-1 block w-full rounded border-gray-300 shadow-sm"
+            className="mt-1 block w-full rounded border-black shadow-sm text-black"
           />
         </div>
       </div>

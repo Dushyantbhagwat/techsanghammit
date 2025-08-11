@@ -1,14 +1,31 @@
 import { useState, useEffect } from 'react';
-import { BusinessPromotion } from '@/types/business';
+import { BusinessPromotion, BusinessSubmission } from '@/types/business';
 import { useCity } from '@/contexts/CityContext';
 import { staticPromotions } from '@/data/staticPromotions';
 import { format } from 'date-fns';
 
-export function BusinessPromotions() {
+interface BusinessPromotionsProps {
+  submittedPromotion?: BusinessSubmission | null;
+}
+
+export function BusinessPromotions({ submittedPromotion }: BusinessPromotionsProps) {
   const [promotions, setPromotions] = useState<BusinessPromotion[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { selectedCity } = useCity();
+
+  useEffect(() => {
+    if (submittedPromotion) {
+      const newPromotion: BusinessPromotion = {
+        ...submittedPromotion,
+        id: `promo-${Date.now()}`, // Generate a unique ID
+        city: selectedCity,
+        featured: false,
+        created_at: new Date().toISOString(),
+      };
+      setPromotions((prevPromotions) => [newPromotion, ...prevPromotions]);
+    }
+  }, [submittedPromotion, selectedCity]);
 
   useEffect(() => {
     const loadPromotions = async () => {
@@ -62,7 +79,7 @@ export function BusinessPromotions() {
       {promotions.map((promotion) => (
         <div
           key={promotion.id}
-          className="bg-white p-4 rounded-lg shadow hover:shadow-md transition-shadow"
+          className="bg-card text-card-foreground p-4 rounded-lg border border-white shadow-white/50 shadow-lg hover:shadow-xl transition-shadow duration-300"
         >
           <h3 className="text-lg font-semibold mb-2">{promotion.businessName}</h3>
           <p className="text-gray-600 mb-4">{promotion.description}</p>
