@@ -16,7 +16,7 @@ export function Layout({ children }: LayoutProps) {
       <Header onSidebarToggle={() => setIsSidebarOpen(!isSidebarOpen)} />
       <div className="flex flex-1 relative">
         <Sidebar isOpen={isSidebarOpen} onToggle={() => setIsSidebarOpen(!isSidebarOpen)} />
-        <main className="flex-1 px-4 md:px-6 lg:px-8 pt-4">
+        <main className="flex-1 pt-20">
           {children}
         </main>
       </div>

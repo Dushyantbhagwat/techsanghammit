@@ -13,7 +13,8 @@ import {
   FileText,
   ChevronRight,
   Camera,
-  AlertTriangle
+  AlertTriangle,
+  Building2
 } from "lucide-react";
 import { useState } from "react";
 import { useCity } from "@/contexts/CityContext";
@@ -34,6 +35,7 @@ const navItems: NavItem[] = [
   { icon: MapPin, label: "MAP VIEW", path: "/map" },
   { icon: Camera, label: "CAMERA MONITORING", path: "/cameras" },
   { icon: Bell, label: "ALERTS", path: "/alerts" },
+  { icon: Building2, label: "CITY UPDATES", path: "/city-updates" },
   { icon: FileText, label: "ANALYTICS", path: "/analytics" },
   { icon: AlertTriangle, label: "HAZARDS", path: "/hazards" },
   { icon: Settings, label: "SETTINGS", path: "/settings" },

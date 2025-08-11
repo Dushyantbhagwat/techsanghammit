@@ -8,6 +8,7 @@ import { LoginPage } from "./pages/LoginPage";
 import { SignupPage } from "./pages/SignupPage";
 import { SettingsPage } from "./pages/SettingsPage";
 import { HazardsPage } from "./pages/HazardsPage";
+import { CityUpdatesPage } from "./pages/CityUpdatesPage";
 import { AuthProvider } from "./contexts/AuthContext";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { CityProvider } from "./contexts/CityContext";
@@ -112,6 +113,16 @@ function App() {
                 <ProtectedRoute>
                   <Layout>
                     <AlertsPage />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/city-updates"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <CityUpdatesPage />
                   </Layout>
                 </ProtectedRoute>
               }
