@@ -1,6 +1,7 @@
 import cv2
 import json
 import time
+import os
 
 PARKING_SPOTS = [
   { "id": 'A1', "x": 100, "y": 200, "width": 100, "height": 150 },
@@ -10,7 +11,9 @@ PARKING_SPOTS = [
   { "id": 'A5', "x": 580, "y": 200, "width": 100, "height": 150 }
 ]
 
-car_cascade = cv2.CascadeClassifier('cars.xml')
+script_dir = os.path.dirname(os.path.abspath(__file__))
+car_cascade = cv2.CascadeClassifier(os.path.join(script_dir, 'cars.xml'))
+ambulance_cascade = cv2.CascadeClassifier(os.path.join(script_dir, 'ambulance.xml'))
 
 def calculate_iou(boxA, boxB):
     xA = max(boxA[0], boxB[0])
@@ -45,6 +48,14 @@ def get_parking_status(frame):
             occupied_spots.append(spot['id'])
     
     return occupied_spots
+
+def detect_ambulance(frame):
+    if ambulance_cascade.empty():
+        print("Error: Ambulance cascade classifier not loaded.")
+        return False
+    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    ambulances = ambulance_cascade.detectMultiScale(gray, 1.05, 3)
+    return len(ambulances) > 0
 
 def generate_frames(camera):
     while True:

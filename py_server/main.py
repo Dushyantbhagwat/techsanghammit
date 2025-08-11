@@ -1,13 +1,13 @@
 from flask import Flask, jsonify, Response
 from flask_cors import CORS
-from car_detection import generate_frames, get_parking_status
+from car_detection import generate_frames, get_parking_status, detect_ambulance
 import cv2
 import threading
 import time
 
 class Camera:
     def __init__(self):
-        self.cap = cv2.VideoCapture(1)
+        self.cap = cv2.VideoCapture(0)
         self.lock = threading.Lock()
         self.frame = None
         self.running = True
@@ -54,6 +54,15 @@ def parking_status():
     
     occupied_spots = get_parking_status(frame)
     return jsonify({'occupied_spots': occupied_spots})
+
+@app.route('/ambulance_detection')
+def ambulance_detection():
+    frame = camera.get_frame()
+    if frame is None:
+        return jsonify({'error': 'Could not get frame from camera'}), 500
+    
+    ambulance_detected = detect_ambulance(frame)
+    return jsonify({'ambulance_detected': ambulance_detected})
 
 if __name__ == '__main__':
     try:

@@ -15,6 +15,7 @@ import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 import { MapView } from "./components/analytics/MapView";
 import CameraMonitoringPage from "./pages/CameraMonitoringPage";
 import Parking from './parking/Parking';
+import AmbulanceDetection from './components/analytics/AmbulanceDetection';
 
 function App() {
   return (
@@ -62,6 +63,16 @@ function App() {
                 <ProtectedRoute>
                   <Layout>
                     <CameraMonitoringPage />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/ambulance"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <AmbulanceDetection />
                   </Layout>
                 </ProtectedRoute>
               }
