@@ -232,24 +232,26 @@ export function EnvironmentalAnalytics() {
       </Card>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card className="p-6 relative">
+        <Card className="p-6 bg-gradient-to-br from-slate-800/50 to-slate-900/50 relative">
           <h3 className="text-lg font-semibold mb-2">Current AQI</h3>
-          <div className="text-3xl font-bold">{envData.current.aqi.value}</div>
+          <div className="text-4xl font-bold" style={{ color: getAqiColor(envData.current.aqi.value) }}>
+            {envData.current.aqi.value}
+          </div>
           <div className="space-y-2">
-            <div style={{ color: getAqiColor(envData.current.aqi.value) }}>
+            <div className="text-lg font-medium" style={{ color: getAqiColor(envData.current.aqi.value) }}>
               {envData.current.aqi.category}
             </div>
             {envData.current.aqi.prediction && (
-              <div className="space-y-1">
-                <div className="flex items-center gap-2 text-sm">
-                  <span>Predicted:</span>
-                  <span style={{ color: getAqiColor(envData.current.aqi.prediction.predictedAQI) }}>
+              <div className="space-y-2 bg-gradient-to-r from-blue-500/10 to-blue-600/5 p-3 rounded-lg">
+                <div className="flex items-center gap-2">
+                  <span className="text-gray-400">Predicted:</span>
+                  <span className="font-medium" style={{ color: getAqiColor(envData.current.aqi.prediction.predictedAQI) }}>
                     {envData.current.aqi.prediction.predictedAQI} AQI
                   </span>
                 </div>
-                <div className="flex items-center gap-2 text-sm">
-                  <span>Confidence:</span>
-                  <span className="text-blue-500">
+                <div className="flex items-center gap-2">
+                  <span className="text-gray-400">Confidence:</span>
+                  <span className="font-medium text-blue-400">
                     {Math.round(envData.current.aqi.prediction.confidence * 100)}%
                   </span>
                 </div>
@@ -257,55 +259,82 @@ export function EnvironmentalAnalytics() {
               </div>
             )}
           </div>
-          <div className="mt-4 text-sm text-gray-500">
-            Updated {new Date(envData.current.timestamp).toLocaleTimeString()}
+          <div className="mt-4 text-sm text-gray-400">
+            Last updated: {new Date(envData.current.timestamp).toLocaleTimeString()}
           </div>
         </Card>
 
-        <Card className="p-6">
+        <Card className="p-6 bg-gradient-to-br from-red-500/10 to-red-600/5">
           <h3 className="text-lg font-semibold mb-2">Temperature</h3>
-          <div className="text-3xl font-bold">{envData.current.temperature}°C</div>
-          <div className="mt-2 text-green-500">Normal</div>
-          <div className="mt-4 text-sm text-gray-500">Updated now</div>
+          <div className="text-4xl font-bold">{envData.current.temperature}°C</div>
+          <div className="mt-2 text-red-400">
+            {envData.current.temperature > 30 ? 'High' :
+             envData.current.temperature < 15 ? 'Low' : 'Normal'}
+          </div>
+          <div className="mt-4 text-sm text-gray-400">Real-time monitoring</div>
         </Card>
 
-        <Card className="p-4">
+        <Card className="p-6 bg-gradient-to-br from-blue-500/10 to-blue-600/5">
           <h3 className="text-lg font-semibold mb-2">Humidity</h3>
-          <div className="text-3xl font-bold">{envData.current.humidity.toFixed(2)}%</div>
-          <div className="mt-2 text-green-500">Optimal</div>
-          <div className="mt-4 text-sm text-gray-500">Updated now</div>
+          <div className="text-4xl font-bold">{envData.current.humidity.toFixed(1)}%</div>
+          <div className="mt-2 text-blue-400">
+            {envData.current.humidity > 70 ? 'High' :
+             envData.current.humidity < 30 ? 'Low' : 'Optimal'}
+          </div>
+          <div className="mt-4 text-sm text-gray-400">Real-time monitoring</div>
         </Card>
 
-        <Card className="p-6">
-          <h3 className="text-lg font-semibold mb-2">CO₂</h3>
-          <div className="text-3xl font-bold">{envData.current.co2} ppm</div>
-          <div className="mt-2 text-green-500">Normal</div>
-          <div className="mt-4 text-sm text-gray-500">Updated now</div>
+        <Card className="p-6 bg-gradient-to-br from-purple-500/10 to-purple-600/5">
+          <h3 className="text-lg font-semibold mb-2">CO₂ Levels</h3>
+          <div className="text-4xl font-bold">{envData.current.co2} ppm</div>
+          <div className="mt-2 text-purple-400">
+            {envData.current.co2 > 1000 ? 'High' :
+             envData.current.co2 < 400 ? 'Low' : 'Normal'}
+          </div>
+          <div className="mt-4 text-sm text-gray-400">Real-time monitoring</div>
         </Card>
 
-        <Card className="p-6">
-          <h3 className="text-lg font-semibold mb-2">NO₂</h3>
-          <div className="text-3xl font-bold">{envData.current.aqi.pollutants.no2 || 0} ppb</div>
-          <div className="mt-2 text-blue-500">Nitrogen Dioxide</div>
-          <div className="mt-4 text-sm text-gray-500">Updated now</div>
+        <Card className="p-6 bg-gradient-to-br from-blue-500/10 to-blue-600/5">
+          <h3 className="text-lg font-semibold mb-2">NO₂ Levels</h3>
+          <div className="text-4xl font-bold">{envData.current.aqi.pollutants.no2 || 0} ppb</div>
+          <div className="mt-2 text-blue-400">
+            Nitrogen Dioxide
+            <span className="ml-2 text-sm">
+              {envData.current.aqi.pollutants.no2 > 100 ? '(High)' :
+               envData.current.aqi.pollutants.no2 > 50 ? '(Moderate)' : '(Normal)'}
+            </span>
+          </div>
+          <div className="mt-4 text-sm text-gray-400">Real-time monitoring</div>
         </Card>
 
-        <Card className="p-6">
-          <h3 className="text-lg font-semibold mb-2">SO₂</h3>
-          <div className="text-3xl font-bold">{envData.current.aqi.pollutants.so2 || 0} ppb</div>
-          <div className="mt-2 text-yellow-500">Sulfur Dioxide</div>
-          <div className="mt-4 text-sm text-gray-500">Updated now</div>
+        <Card className="p-6 bg-gradient-to-br from-yellow-500/10 to-yellow-600/5">
+          <h3 className="text-lg font-semibold mb-2">SO₂ Levels</h3>
+          <div className="text-4xl font-bold">{envData.current.aqi.pollutants.so2 || 0} ppb</div>
+          <div className="mt-2 text-yellow-400">
+            Sulfur Dioxide
+            <span className="ml-2 text-sm">
+              {envData.current.aqi.pollutants.so2 > 75 ? '(High)' :
+               envData.current.aqi.pollutants.so2 > 35 ? '(Moderate)' : '(Normal)'}
+            </span>
+          </div>
+          <div className="mt-4 text-sm text-gray-400">Real-time monitoring</div>
         </Card>
 
-        <Card className="p-6">
-          <h3 className="text-lg font-semibold mb-2">O₃</h3>
-          <div className="text-3xl font-bold">{envData.current.aqi.pollutants.o3 || 0} ppb</div>
-          <div className="mt-2 text-purple-500">Ozone</div>
-          <div className="mt-4 text-sm text-gray-500">Updated now</div>
+        <Card className="p-6 bg-gradient-to-br from-purple-500/10 to-purple-600/5">
+          <h3 className="text-lg font-semibold mb-2">O₃ Levels</h3>
+          <div className="text-4xl font-bold">{envData.current.aqi.pollutants.o3 || 0} ppb</div>
+          <div className="mt-2 text-purple-400">
+            Ozone
+            <span className="ml-2 text-sm">
+              {envData.current.aqi.pollutants.o3 > 70 ? '(High)' :
+               envData.current.aqi.pollutants.o3 > 50 ? '(Moderate)' : '(Normal)'}
+            </span>
+          </div>
+          <div className="mt-4 text-sm text-gray-400">Real-time monitoring</div>
         </Card>
       </div>
 
-      <Card className="p-6">
+      <Card className="p-6 bg-gradient-to-br from-slate-800/50 to-slate-900/50">
         <h3 className="text-lg font-semibold mb-4">Location-wise AQI Comparison</h3>
         <div className="h-[380px]">
           <ResponsiveBar
@@ -350,7 +379,7 @@ export function EnvironmentalAnalytics() {
       </Card>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="p-6">
+        <Card className="p-6 bg-gradient-to-br from-slate-800/50 to-slate-900/50">
           <h3 className="text-lg font-semibold mb-4">Temperature & Humidity Correlation</h3>
           <div className="h-[300px]">
             <ResponsiveLine
@@ -415,7 +444,7 @@ export function EnvironmentalAnalytics() {
           </div>
         </Card>
 
-        <Card className="p-6">
+        <Card className="p-6 bg-gradient-to-br from-slate-800/50 to-slate-900/50">
           <h3 className="text-lg font-semibold mb-4">CO₂ Levels</h3>
           <div className="h-[300px]">
             <ResponsiveLine
@@ -463,7 +492,7 @@ export function EnvironmentalAnalytics() {
           </div>
         </Card>
 
-        <Card className="p-6">
+        <Card className="p-6 bg-gradient-to-br from-slate-800/50 to-slate-900/50">
           <h3 className="text-lg font-semibold mb-4">Air Pollutants</h3>
           <div className="h-[300px]">
             <ResponsiveLine
@@ -538,46 +567,114 @@ export function EnvironmentalAnalytics() {
         </Card>
       </div>
 
-      <Card className="p-6">
-        <h3 className="text-lg font-semibold mb-4">Environmental Insights</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <h4 className="font-medium mb-3">Air Quality Analysis</h4>
-            <div className="space-y-2">
-              <div className="flex justify-between items-center">
-                <span>Primary Pollutant</span>
-                <span className="font-medium">
-                  {envData.current.aqi.pollutants.pm25 ? 'PM2.5' : 
-                   envData.current.aqi.pollutants.no2 ? 'NO2' : 
-                   envData.current.aqi.pollutants.so2 ? 'SO2' : 'O3'}
-                </span>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card className="p-6 bg-gradient-to-br from-slate-800/50 to-slate-900/50">
+          <h3 className="text-lg font-semibold mb-4">Environmental Analysis</h3>
+          <div className="space-y-6">
+            <div>
+              <h4 className="font-medium mb-3 text-blue-400">Current Conditions</h4>
+              <div className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <span>Primary Pollutant</span>
+                  <span className="font-medium" style={{
+                    color: getAqiColor(
+                      envData.current.aqi.pollutants[
+                        envData.current.aqi.pollutants.pm25 ? 'pm25' :
+                        envData.current.aqi.pollutants.no2 ? 'no2' :
+                        envData.current.aqi.pollutants.so2 ? 'so2' : 'o3'
+                      ]
+                    )
+                  }}>
+                    {envData.current.aqi.pollutants.pm25 ? 'PM2.5' :
+                     envData.current.aqi.pollutants.no2 ? 'NO2' :
+                     envData.current.aqi.pollutants.so2 ? 'SO2' : 'O3'}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span>24-hour Average</span>
+                  <span className="font-medium" style={{ color: getAqiColor(envData.current.aqi.value) }}>
+                    {envData.current.aqi.value} AQI
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span>Peak Hours</span>
+                  <span className="font-medium text-red-400">
+                    {envData.timeRangeAverages.daily.reduce((max, current) =>
+                      current.averageAqi > max.averageAqi ? current : max
+                    ).hour}
+                  </span>
+                </div>
               </div>
-              <div className="flex justify-between items-center">
-                <span>Daily Average</span>
-                <span className="font-medium">{envData.current.aqi.value} AQI</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span>Peak Hours</span>
-                <span className="font-medium">
-                  {envData.timeRangeAverages.daily.reduce((max, current) => 
-                    current.averageAqi > max.averageAqi ? current : max
-                  ).hour}
-                </span>
+            </div>
+
+            <div>
+              <h4 className="font-medium mb-3 text-amber-400">Trend Analysis</h4>
+              <div className="space-y-2">
+                <div className="p-2 bg-gradient-to-r from-blue-500/10 to-blue-600/5 rounded">
+                  <span className="text-blue-400">
+                    {envData.current.aqi.prediction?.trend === 'improving' ? 'Air quality showing improvement trend' :
+                     envData.current.aqi.prediction?.trend === 'worsening' ? 'Air quality deteriorating' :
+                     'Air quality remains stable'}
+                  </span>
+                </div>
+                <div className="p-2 bg-gradient-to-r from-purple-500/10 to-purple-600/5 rounded">
+                  <span className="text-purple-400">
+                    CO₂ levels {envData.current.co2 > 1000 ? 'above recommended range' : 'within normal range'}
+                  </span>
+                </div>
               </div>
             </div>
           </div>
-          <div>
-            <h4 className="font-medium mb-3">Recommendations</h4>
-            <ul className="list-disc list-inside space-y-1 text-sm">
-              <li>Optimal ventilation hours: 6 AM - 9 AM</li>
-              <li>Plan activities based on current AQI levels</li>
-              <li>Use air purifiers when needed</li>
-              <li>Check AQI before outdoor activities</li>
-              <li>Monitor humidity levels in enclosed spaces</li>
-            </ul>
+        </Card>
+
+        <Card className="p-6 bg-gradient-to-br from-slate-800/50 to-slate-900/50">
+          <h3 className="text-lg font-semibold mb-4">Smart Recommendations</h3>
+          <div className="space-y-6">
+            <div>
+              <h4 className="font-medium mb-3 text-green-400">Health Advisory</h4>
+              <div className="space-y-2">
+                {envData.current.aqi.value <= 50 && (
+                  <div className="p-2 bg-gradient-to-r from-green-500/10 to-green-600/5 rounded">
+                    <span className="text-green-400">Excellent conditions for outdoor activities</span>
+                  </div>
+                )}
+                {envData.current.aqi.value > 50 && envData.current.aqi.value <= 100 && (
+                  <div className="p-2 bg-gradient-to-r from-yellow-500/10 to-yellow-600/5 rounded">
+                    <span className="text-yellow-400">Moderate air quality - sensitive individuals should take precautions</span>
+                  </div>
+                )}
+                {envData.current.aqi.value > 100 && (
+                  <div className="p-2 bg-gradient-to-r from-red-500/10 to-red-600/5 rounded">
+                    <span className="text-red-400">Poor air quality - limit outdoor exposure</span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div>
+              <h4 className="font-medium mb-3 text-blue-400">Action Items</h4>
+              <div className="space-y-2">
+                <div className="p-2 bg-gradient-to-r from-blue-500/10 to-blue-600/5 rounded">
+                  <span className="text-blue-400">Best ventilation: 6 AM - 9 AM</span>
+                </div>
+                {envData.current.humidity > 70 && (
+                  <div className="p-2 bg-gradient-to-r from-amber-500/10 to-amber-600/5 rounded">
+                    <span className="text-amber-400">Use dehumidifiers to maintain optimal indoor conditions</span>
+                  </div>
+                )}
+                {envData.current.co2 > 1000 && (
+                  <div className="p-2 bg-gradient-to-r from-red-500/10 to-red-600/5 rounded">
+                    <span className="text-red-400">Improve ventilation in enclosed spaces</span>
+                  </div>
+                )}
+                <div className="p-2 bg-gradient-to-r from-purple-500/10 to-purple-600/5 rounded">
+                  <span className="text-purple-400">Monitor AQI updates every 5 minutes</span>
+                </div>
+              </div>
+            </div>
           </div>
-        </div>
-      </Card>
+        </Card>
+      </div>
     </div>
   );
 }

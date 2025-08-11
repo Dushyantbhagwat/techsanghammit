@@ -409,7 +409,7 @@ export function TrafficAnalytics() {
         Live Updates
       </div>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className="p-6 relative">
+        <Card className="p-6 bg-gradient-to-br from-slate-800/50 to-slate-900/50 relative">
           <h3 className="text-lg font-semibold mb-2">Congestion Level</h3>
           <div className="text-3xl font-bold flex items-center gap-3">
             {trafficData.current.congestionLevel}%
@@ -428,7 +428,7 @@ export function TrafficAnalytics() {
           </div>
         </Card>
 
-        <Card className="p-6 relative">
+        <Card className="p-6 bg-gradient-to-br from-slate-800/50 to-slate-900/50 relative">
           <h3 className="text-lg font-semibold mb-2">Average Speed</h3>
           <div className="text-3xl font-bold flex items-center gap-3">
             {trafficData.current.averageSpeed} km/h
@@ -447,7 +447,7 @@ export function TrafficAnalytics() {
           </div>
         </Card>
 
-        <Card className="p-6 relative">
+        <Card className="p-6 bg-gradient-to-br from-slate-800/50 to-slate-900/50 relative">
           <h3 className="text-lg font-semibold mb-2">Vehicle Count</h3>
           <div className="text-3xl font-bold flex items-center gap-3">
             {trafficData.current.vehicleCount}
@@ -467,7 +467,7 @@ export function TrafficAnalytics() {
         </Card>
       </div>
 
-      <Card className="p-6">
+      <Card className="p-6 bg-gradient-to-br from-slate-800/50 to-slate-900/50">
         <h3 className="text-lg font-semibold mb-2">Hourly Traffic Flow</h3>
         <div className="h-[400px]">
           <ResponsiveLine
@@ -505,7 +505,7 @@ export function TrafficAnalytics() {
             pointColor="#ffffff"
             enableSlices="x"
             sliceTooltip={({ slice }) => (
-              <div style={{ background: 'white', padding: '9px 12px', border: '1px solid #ccc' }}>
+              <div className="bg-gray-800 text-white p-3 border border-gray-700 rounded shadow-lg">
                 {slice.points.map(point => (
                   <div key={point.id}>
                     <strong>Hour: </strong>{String(point.data.x)}<br />
@@ -526,7 +526,7 @@ export function TrafficAnalytics() {
         </div>
       </Card>
 
-      <Card className="p-6">
+      <Card className="p-6 bg-gradient-to-br from-slate-800/50 to-slate-900/50">
         <h3 className="text-lg font-semibold mb-4">Junction-wise Traffic Status</h3>
         <div className="h-[400px] -mt-2">
           <ResponsiveBar
@@ -571,7 +571,7 @@ export function TrafficAnalytics() {
       </Card>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="p-6">
+        <Card className="p-6 bg-gradient-to-br from-slate-800/50 to-slate-900/50">
           <h3 className="text-lg font-semibold mb-4">Speed vs Vehicle Count</h3>
           <div className="h-[400px] -mt-2">
             <ResponsiveLine
@@ -627,7 +627,7 @@ export function TrafficAnalytics() {
               enableGridY={false}
               enableSlices="x"
               sliceTooltip={({ slice }) => (
-                <div style={{ background: 'white', padding: '9px 12px', border: '1px solid #ccc' }}>
+                <div className="bg-gray-800 text-white p-3 border border-gray-700 rounded shadow-lg">
                   {slice.points.map(point => (
                     <div key={point.id}>
                       <strong>Hour: </strong>{String(point.data.x)}<br />
@@ -663,7 +663,7 @@ export function TrafficAnalytics() {
           </div>
         </Card>
 
-        <Card className="p-6">
+        <Card className="p-6 bg-gradient-to-br from-slate-800/50 to-slate-900/50">
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-2xl font-semibold">Real-Time Traffic Insights</h3>
             <div className="flex items-center gap-2">

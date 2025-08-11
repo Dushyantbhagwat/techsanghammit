@@ -97,9 +97,27 @@ export function ParkingAnalytics() {
   }
 
   const getOccupancyStatus = (rate: number) => {
-    if (rate <= 50) return { text: "Low Occupancy", color: "text-green-500", bgColor: "bg-green-100", indicator: "low" };
-    if (rate <= 80) return { text: "Moderate", color: "text-amber-500", bgColor: "bg-amber-100", indicator: "moderate" };
-    return { text: "High Occupancy", color: "text-red-500", bgColor: "bg-red-100", indicator: "high" };
+    if (rate <= 50) return {
+      text: "Low Occupancy",
+      color: "text-green-500",
+      bgColor: "bg-gradient-to-br from-green-500/10 to-green-600/5",
+      borderColor: "border-green-500",
+      indicator: "low"
+    };
+    if (rate <= 80) return {
+      text: "Moderate",
+      color: "text-amber-500",
+      bgColor: "bg-gradient-to-br from-amber-500/10 to-amber-600/5",
+      borderColor: "border-amber-500",
+      indicator: "moderate"
+    };
+    return {
+      text: "High Occupancy",
+      color: "text-red-500",
+      bgColor: "bg-gradient-to-br from-red-500/10 to-red-600/5",
+      borderColor: "border-red-500",
+      indicator: "high"
+    };
   };
 
   const currentStatus = getOccupancyStatus(parkingData.current.occupancyRate);
@@ -107,67 +125,73 @@ export function ParkingAnalytics() {
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className={`parking-status-card p-6 border-l-4 border-blue-500 ${currentStatus.bgColor}`}>
+        <Card className="parking-status-card p-6 bg-gradient-to-br from-blue-500/10 to-blue-600/5">
           <h3 className="text-lg font-semibold mb-2">Total Spaces</h3>
           <div className="text-3xl font-bold">{parkingData.current.totalSpaces.toLocaleString()}</div>
-          <div className="mt-2 text-blue-500">Available in {selectedCity}</div>
-          <div className="mt-4 text-sm text-gray-500">
-            Updated {new Date(parkingData.current.timestamp).toLocaleTimeString()}
+          <div className="mt-2 text-blue-500">Infrastructure Coverage</div>
+          <div className="mt-4 text-sm text-gray-400">
+            Last updated: {new Date(parkingData.current.timestamp).toLocaleTimeString()}
           </div>
         </Card>
 
-        <Card className={`parking-status-card p-6 border-l-4 ${currentStatus.color.replace('text', 'border')} ${currentStatus.bgColor}`}>
-          <div className="flex items-center">
-            <span className={`status-indicator ${currentStatus.indicator}`} aria-hidden="true"></span>
-            <h3 className="text-lg font-semibold mb-2">Occupied Spaces</h3>
+        <Card className={`parking-status-card p-6 ${currentStatus.bgColor}`}>
+          <div className="flex items-center gap-2">
+            <span className={`h-3 w-3 rounded-full ${currentStatus.color.replace('text', 'bg')}`} aria-hidden="true"></span>
+            <h3 className="text-lg font-semibold">Occupied Spaces</h3>
           </div>
-          <div className="text-3xl font-bold">{parkingData.current.occupiedSpaces.toLocaleString()}</div>
-          <div className={`mt-2 ${currentStatus.color} font-medium`}>{currentStatus.text}</div>
-          <div className="mt-4 text-sm text-gray-500">Live Update</div>
+          <div className="text-3xl font-bold mt-2">{parkingData.current.occupiedSpaces.toLocaleString()}</div>
+          <div className={`mt-2 ${currentStatus.color} font-medium`}>
+            {currentStatus.text} • {((parkingData.current.occupiedSpaces / parkingData.current.totalSpaces) * 100).toFixed(1)}% of capacity
+          </div>
+          <div className="mt-4 text-sm text-gray-400">Real-time monitoring</div>
         </Card>
 
-        <Card className={`parking-status-card p-6 border-l-4 ${currentStatus.color.replace('text', 'border')} ${currentStatus.bgColor}`}>
-          <div className="flex items-center">
-            <span className={`status-indicator ${currentStatus.indicator}`} aria-hidden="true"></span>
-            <h3 className="text-lg font-semibold mb-2">Occupancy Rate</h3>
+        <Card className={`parking-status-card p-6 ${currentStatus.bgColor}`}>
+          <div className="flex items-center gap-2">
+            <span className={`h-3 w-3 rounded-full ${currentStatus.color.replace('text', 'bg')}`} aria-hidden="true"></span>
+            <h3 className="text-lg font-semibold">Available Spaces</h3>
           </div>
-          <div className="text-3xl font-bold">{parkingData.current.occupancyRate}%</div>
-          <div className={`mt-2 ${currentStatus.color} font-medium`}>{currentStatus.text}</div>
-          <div className="mt-4 text-sm text-gray-500">Live Update</div>
+          <div className="text-3xl font-bold mt-2">
+            {(parkingData.current.totalSpaces - parkingData.current.occupiedSpaces).toLocaleString()}
+          </div>
+          <div className={`mt-2 ${currentStatus.color} font-medium`}>
+            Immediate availability
+          </div>
+          <div className="mt-4 text-sm text-gray-400">Updated live</div>
         </Card>
       </div>
 
-      <Card className="parking-status-card p-6">
+      <Card className="parking-status-card p-6 bg-gradient-to-br from-slate-800/50 to-slate-900/50">
         <h3 className="text-lg font-semibold mb-4">Location-wise Availability</h3>
         <div className="space-y-4">
           {parkingData.locations.map(loc => {
             const status = getOccupancyStatus(loc.occupancyRate);
             const availableSpaces = loc.totalSpaces - loc.occupiedSpaces;
             return (
-              <div 
-                key={loc.name} 
-                className={`p-4 rounded-lg ${status.bgColor} border-l-4 ${status.color.replace('text', 'border')}`}
+              <div
+                key={loc.name}
+                className={`p-4 rounded-lg ${status.bgColor}`}
                 role="region"
                 aria-label={`Parking status for ${loc.name}`}
               >
                 <div className="flex justify-between items-center">
-                  <div className="flex items-center">
-                    <span className={`status-indicator ${status.indicator}`} aria-hidden="true"></span>
+                  <div className="flex items-center gap-3">
+                    <span className={`h-3 w-3 rounded-full ${status.color.replace('text', 'bg')}`} aria-hidden="true"></span>
                     <div>
                       <h4 className="font-medium">{loc.name}</h4>
                       <p className={`${status.color} text-sm font-medium`}>
-                        {status.text} • {availableSpaces.toLocaleString()} spots available
+                        {status.text} • {availableSpaces.toLocaleString()} available
                       </p>
                     </div>
                   </div>
                   <div className="text-right">
                     <div className="text-lg font-bold">{loc.occupancyRate}%</div>
-                    <div className="text-sm text-gray-500">occupied</div>
+                    <div className="text-sm text-gray-400">occupancy</div>
                   </div>
                 </div>
-                <div className="mt-2 h-2 bg-gray-200 rounded-full overflow-hidden">
-                  <div 
-                    className={`parking-progress-bar h-full ${status.color.replace('text', 'bg')}`}
+                <div className="mt-3 h-2 bg-gray-700/50 rounded-full overflow-hidden">
+                  <div
+                    className={`h-full ${status.color.replace('text', 'bg')}`}
                     style={{ width: `${loc.occupancyRate}%` }}
                     role="progressbar"
                     aria-valuenow={loc.occupancyRate}
@@ -181,60 +205,80 @@ export function ParkingAnalytics() {
         </div>
       </Card>
 
-      <Card className="parking-status-card p-6">
-        <h3 className="text-lg font-semibold mb-4">Parking Insights</h3>
-        <div className="space-y-6">
-          <div>
-            <h4 className="font-medium mb-3">Current Status</h4>
-            <div className="space-y-2">
-              {parkingData.locations.map(loc => {
-                const status = getOccupancyStatus(loc.occupancyRate);
-                const availableSpaces = loc.totalSpaces - loc.occupiedSpaces;
-                return (
-                  <div 
-                    key={loc.name}
-                    className={`p-2 rounded ${status.bgColor} flex items-center`}
-                  >
-                    <span className={`status-indicator ${status.indicator}`} aria-hidden="true"></span>
-                    <span className="font-medium flex-1">{loc.name}</span>
-                    <span className={status.color}>
-                      {availableSpaces.toLocaleString()} spots free
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-          
-          <div>
-            <h4 className="font-medium mb-3">Smart Recommendations</h4>
-            <div className="space-y-2">
-              {parkingData.locations
-                .filter(loc => loc.occupancyRate <= 60)
-                .map(loc => (
-                  <div key={loc.name} className="p-2 bg-green-100 rounded flex items-center">
-                    <span className="status-indicator low" aria-hidden="true"></span>
-                    <span className="text-green-600">
-                      Best availability at {loc.name} ({(loc.totalSpaces - loc.occupiedSpaces).toLocaleString()} spaces)
-                    </span>
-                  </div>
-                ))}
-              <div className="p-2 bg-amber-100 rounded flex items-center">
-                <span className="status-indicator moderate" aria-hidden="true"></span>
-                <span className="text-amber-600">
-                  Peak hours expected between 5 PM - 8 PM
-                </span>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card className="parking-status-card p-6 bg-gradient-to-br from-slate-800/50 to-slate-900/50">
+          <h3 className="text-lg font-semibold mb-4">Parking Analytics</h3>
+          <div className="space-y-6">
+            <div>
+              <h4 className="font-medium mb-3 text-blue-400">Occupancy Overview</h4>
+              <div className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <span>Average Occupancy Rate</span>
+                  <span className="font-semibold">
+                    {(parkingData.locations.reduce((acc, loc) => acc + loc.occupancyRate, 0) / parkingData.locations.length).toFixed(1)}%
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span>Total Available Spaces</span>
+                  <span className="font-semibold text-green-500">
+                    {parkingData.locations.reduce((acc, loc) => acc + (loc.totalSpaces - loc.occupiedSpaces), 0).toLocaleString()}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span>Locations at Capacity</span>
+                  <span className="font-semibold text-red-500">
+                    {parkingData.locations.filter(loc => loc.occupancyRate >= 90).length}
+                  </span>
+                </div>
               </div>
-              <div className="p-2 bg-blue-100 rounded flex items-center">
-                <span className="status-indicator" style={{ backgroundColor: '#3B82F6' }} aria-hidden="true"></span>
-                <span className="text-blue-600">
-                  Data updates every 5 minutes
-                </span>
+            </div>
+            
+            <div>
+              <h4 className="font-medium mb-3 text-amber-400">Peak Hours Analysis</h4>
+              <div className="space-y-2">
+                <div className="p-2 bg-gradient-to-r from-amber-500/10 to-amber-600/5 rounded">
+                  <span className="text-amber-500">Morning Peak: 8 AM - 11 AM</span>
+                </div>
+                <div className="p-2 bg-gradient-to-r from-red-500/10 to-red-600/5 rounded">
+                  <span className="text-red-500">Evening Peak: 5 PM - 8 PM</span>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      </Card>
+        </Card>
+
+        <Card className="parking-status-card p-6 bg-gradient-to-br from-slate-800/50 to-slate-900/50">
+          <h3 className="text-lg font-semibold mb-4">Smart Recommendations</h3>
+          <div className="space-y-6">
+            <div>
+              <h4 className="font-medium mb-3 text-green-400">Best Parking Options</h4>
+              <div className="space-y-2">
+                {parkingData.locations
+                  .filter(loc => loc.occupancyRate <= 60)
+                  .map(loc => (
+                    <div key={loc.name} className="p-2 bg-gradient-to-r from-green-500/10 to-green-600/5 rounded">
+                      <span className="text-green-500">
+                        {loc.name}: {(loc.totalSpaces - loc.occupiedSpaces).toLocaleString()} spaces available
+                      </span>
+                    </div>
+                  ))}
+              </div>
+            </div>
+
+            <div>
+              <h4 className="font-medium mb-3 text-blue-400">System Updates</h4>
+              <div className="space-y-2">
+                <div className="p-2 bg-gradient-to-r from-blue-500/10 to-blue-600/5 rounded">
+                  <span className="text-blue-500">Real-time data updates every 5 minutes</span>
+                </div>
+                <div className="p-2 bg-gradient-to-r from-purple-500/10 to-purple-600/5 rounded">
+                  <span className="text-purple-500">AI-powered occupancy predictions</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </Card>
+      </div>
     </div>
   );
 }

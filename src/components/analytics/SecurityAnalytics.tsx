@@ -125,33 +125,48 @@ export function SecurityAnalytics() {
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className="p-6">
+        <Card className="p-6 bg-gradient-to-br from-red-500/10 to-red-600/5">
           <h3 className="text-lg font-semibold mb-2">Active Alerts</h3>
-          <div className="text-3xl font-bold">{securityData.current.activeAlerts}</div>
-          <StatusIndicator level={securityData.current.activeAlerts > 10 ? 'High' : securityData.current.activeAlerts > 5 ? 'Medium' : 'Low'} />
-          <div className="mt-4 text-sm text-gray-500">
-            Updated {new Date(securityData.current.timestamp).toLocaleTimeString()}
+          <div className="text-4xl font-bold">{securityData.current.activeAlerts}</div>
+          <div className="mt-2 space-y-2">
+            <StatusIndicator level={securityData.current.activeAlerts > 10 ? 'High' : securityData.current.activeAlerts > 5 ? 'Medium' : 'Low'} />
+            <div className="text-sm text-gray-400">
+              {securityData.current.activeAlerts > 10 ? 'Critical attention needed' :
+               securityData.current.activeAlerts > 5 ? 'Elevated alert level' : 'Normal operations'}
+            </div>
+          </div>
+          <div className="mt-4 text-sm text-gray-400">
+            Last updated: {new Date(securityData.current.timestamp).toLocaleTimeString()}
           </div>
         </Card>
 
-        <Card className="p-6">
-          <h3 className="text-lg font-semibold mb-2">Active Cameras</h3>
-          <div className="text-3xl font-bold">{securityData.current.activeCameras}</div>
-          <div className="mt-2">
+        <Card className="p-6 bg-gradient-to-br from-blue-500/10 to-blue-600/5">
+          <h3 className="text-lg font-semibold mb-2">Surveillance Network</h3>
+          <div className="text-4xl font-bold">{securityData.current.activeCameras}</div>
+          <div className="mt-2 space-y-2">
             <StatusIndicator level={systemStatus === 'Normal' ? 'Low' : 'Medium'} />
+            <div className="text-sm text-gray-400">
+              {Math.round((securityData.current.activeCameras / securityData.zones.reduce((acc, z) => acc + z.activeCameras, 0)) * 100)}% operational
+            </div>
           </div>
-          <div className="mt-4 text-sm text-gray-500">Updated now</div>
+          <div className="mt-4 text-sm text-gray-400">Real-time monitoring</div>
         </Card>
 
-        <Card className="p-6">
-          <h3 className="text-lg font-semibold mb-2">Total Incidents</h3>
-          <div className="text-3xl font-bold">{securityData.current.incidentCount}</div>
-          <StatusIndicator level={securityData.current.incidentCount > 15 ? 'High' : securityData.current.incidentCount > 8 ? 'Medium' : 'Low'} />
-          <div className="mt-4 text-sm text-gray-500">Last 24 Hours</div>
+        <Card className="p-6 bg-gradient-to-br from-amber-500/10 to-amber-600/5">
+          <h3 className="text-lg font-semibold mb-2">24h Incidents</h3>
+          <div className="text-4xl font-bold">{securityData.current.incidentCount}</div>
+          <div className="mt-2 space-y-2">
+            <StatusIndicator level={securityData.current.incidentCount > 15 ? 'High' : securityData.current.incidentCount > 8 ? 'Medium' : 'Low'} />
+            <div className="text-sm text-gray-400">
+              {securityData.current.incidentCount > 15 ? 'Above average activity' :
+               securityData.current.incidentCount > 8 ? 'Moderate activity' : 'Normal activity'}
+            </div>
+          </div>
+          <div className="mt-4 text-sm text-gray-400">Rolling 24-hour period</div>
         </Card>
       </div>
 
-      <Card className="p-6">
+      <Card className="p-6 bg-gradient-to-br from-slate-800/50 to-slate-900/50">
         <h3 className="text-lg font-semibold mb-4">Hourly Alert Trend</h3>
         <div className="h-[380px]">
           <ResponsiveLine
@@ -210,7 +225,7 @@ export function SecurityAnalytics() {
         </div>
       </Card>
 
-      <Card className="p-4">
+      <Card className="p-6 bg-gradient-to-br from-slate-800/50 to-slate-900/50">
         <h3 className="text-lg font-semibold mb-4">Zone-wise Security Status</h3>
         <div className="h-[380px]">
           <ResponsiveBar
@@ -262,7 +277,7 @@ export function SecurityAnalytics() {
       </Card>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="p-4">
+        <Card className="p-6 bg-gradient-to-br from-slate-800/50 to-slate-900/50">
           <h3 className="text-lg font-semibold mb-4">Incident Types</h3>
           <div className="h-[380px]">
             <ResponsiveBar
@@ -302,37 +317,75 @@ export function SecurityAnalytics() {
           </div>
         </Card>
 
-        <Card className="p-6">
-          <h3 className="text-lg font-semibold mb-4">Security Insights</h3>
-          <div className="space-y-4">
+        <Card className="p-6 bg-gradient-to-br from-slate-800/50 to-slate-900/50">
+          <h3 className="text-lg font-semibold mb-4">Security Insights & Actions</h3>
+          <div className="space-y-6">
             <div>
-              <h4 className="font-medium mb-2">Current Status</h4>
-              <ul className="list-disc list-inside space-y-1 text-sm">
+              <h4 className="font-medium mb-3 text-red-400">High Priority Alerts</h4>
+              <div className="space-y-2">
                 {highRiskZones.map(zone => (
-                  <li key={zone.name} className="text-red-500">
-                    High alert level in {zone.name} ({zone.incidentCount} incidents)
-                  </li>
+                  <div key={zone.name} className="p-2 bg-gradient-to-r from-red-500/10 to-red-600/5 rounded">
+                    <span className="text-red-400">
+                      {zone.name}: {zone.incidentCount} incidents (High Risk)
+                    </span>
+                  </div>
                 ))}
-                <li className={systemStatus === 'Normal' ? 'text-green-500' : 'text-amber-500'}>
-                  Surveillance system status: {systemStatus}
-                </li>
-                <li className="text-blue-500">
-                  Most common incident: {securityData.incidentTypes[0].type}
-                </li>
-              </ul>
+                {highRiskZones.length === 0 && (
+                  <div className="p-2 bg-gradient-to-r from-green-500/10 to-green-600/5 rounded">
+                    <span className="text-green-400">No high-risk zones detected</span>
+                  </div>
+                )}
+              </div>
             </div>
+
             <div>
-              <h4 className="font-medium mb-2">Recommendations</h4>
-              <ul className="list-disc list-inside space-y-1 text-sm">
+              <h4 className="font-medium mb-3 text-blue-400">System Status</h4>
+              <div className="space-y-2">
+                <div className={`p-2 bg-gradient-to-r ${
+                  systemStatus === 'Normal'
+                    ? 'from-green-500/10 to-green-600/5'
+                    : 'from-amber-500/10 to-amber-600/5'
+                } rounded`}>
+                  <span className={systemStatus === 'Normal' ? 'text-green-400' : 'text-amber-400'}>
+                    Surveillance system: {systemStatus}
+                  </span>
+                </div>
+                <div className="p-2 bg-gradient-to-r from-blue-500/10 to-blue-600/5 rounded">
+                  <span className="text-blue-400">
+                    Most frequent: {securityData.incidentTypes[0].type} ({securityData.incidentTypes[0].count} cases)
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <h4 className="font-medium mb-3 text-amber-400">Action Items</h4>
+              <div className="space-y-2">
                 {highRiskZones.map(zone => (
-                  <li key={zone.name}>Increase patrols in {zone.name}</li>
+                  <div key={zone.name} className="p-2 bg-gradient-to-r from-red-500/10 to-red-600/5 rounded">
+                    <span className="text-red-400">
+                      Immediate: Increase patrol frequency in {zone.name}
+                    </span>
+                  </div>
                 ))}
                 {systemStatus === 'Degraded' && (
-                  <li>Schedule maintenance for inactive cameras</li>
+                  <div className="p-2 bg-gradient-to-r from-amber-500/10 to-amber-600/5 rounded">
+                    <span className="text-amber-400">
+                      Priority: Schedule maintenance for non-operational cameras
+                    </span>
+                  </div>
                 )}
-                <li>Monitor {securityData.incidentTypes[0].type.toLowerCase()} incidents closely</li>
-                <li>Regular system diagnostics recommended</li>
-              </ul>
+                <div className="p-2 bg-gradient-to-r from-blue-500/10 to-blue-600/5 rounded">
+                  <span className="text-blue-400">
+                    Focus: Monitor {securityData.incidentTypes[0].type.toLowerCase()} patterns
+                  </span>
+                </div>
+                <div className="p-2 bg-gradient-to-r from-purple-500/10 to-purple-600/5 rounded">
+                  <span className="text-purple-400">
+                    Routine: Run system diagnostics every 6 hours
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
         </Card>
