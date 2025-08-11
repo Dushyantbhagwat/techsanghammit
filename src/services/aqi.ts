@@ -54,54 +54,111 @@ export const getAqiCategory = (aqi: number): string => {
   return 'Hazardous';
 };
 
+// 🟡 Fetch real AQI from Google API
+interface GoogleAirQualityResponse {
+  currentConditions: {
+    indexes: Array<{
+      aqi: number;
+      category: string;
+      name: string;
+    }>;
+    pollutants: Array<{
+      code: string;
+      concentration: {
+        value: number;
+        units: string;
+      };
+    }>;
+    time: string;
+  };
+}
+
+export const fetchRealAQI = async (lat: number, lng: number): Promise<{
+  aqi: number;
+  category: string;
+  pollutants: Record<string, number>;
+}> => {
+  const apiKey = 'AIzaSyBuYG7_yoGFjnL3kuJL6QBaPZ8QAx24SMM';
+  const url = `https://airquality.googleapis.com/v1/currentConditions:lookup?key=${apiKey}`;
+
+  const response = await fetch(url, {
+    method: 'POST',
+    body: JSON.stringify({
+      location: { latitude: lat, longitude: lng },
+      languageCode: 'en'
+    }),
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  });
+
+  if (!response.ok) throw new Error('Failed to fetch AQI from Google');
+
+  const data: GoogleAirQualityResponse = await response.json();
+  const index = data.currentConditions.indexes[0];
+
+  const pollutantsObj: Record<string, number> = {};
+  data.currentConditions.pollutants.forEach(p => {
+    pollutantsObj[p.code.toLowerCase()] = p.concentration.value;
+  });
+
+  return {
+    aqi: index.aqi,
+    category: index.category,
+    pollutants: pollutantsObj
+  };
+};
+
+// 🟡 Simulate historical hourly data for 24 hours
 const generateHistoricalData = (timestamp: Date) => {
   const data = [];
   const baseAqi = Math.floor(Math.random() * 100) + 50;
-  
+
   for (let i = 0; i < 24; i++) {
     const hourTimestamp = new Date(timestamp);
     hourTimestamp.setHours(hourTimestamp.getHours() - i);
-    
+
     const variation = Math.sin((i / 24) * Math.PI * 2) * 20;
     const aqi = Math.max(0, Math.min(500, baseAqi + variation + (Math.random() * 20 - 10)));
-    
+
     data.push({
       timestamp: hourTimestamp.toISOString(),
       aqi: Math.round(aqi)
     });
   }
-  
+
   return data;
 };
 
+// 🟢 Main Function: Fetch All Environmental Data
 export const fetchEnvironmentalData = async (_city?: string): Promise<EnvironmentalData> => {
-  // Simulated data for demonstration
   const now = new Date();
+
+  // 🌐 Fetch real AQI data (you can update coordinates as needed)
+  const { aqi: realAqi, category, pollutants } = await fetchRealAQI(19.0760, 72.8777); // Example: Mumbai
+
+  // 🔁 Simulate past 24-hour data (can later replace with real hourly API)
   const historicalData = generateHistoricalData(now);
-  
-  // Initialize and train AQI predictor with historical data
+
+  // 🧠 AQI prediction using ML
   await initializeAQIPredictor(historicalData.map(d => d.aqi));
-  
-  // Get AQI prediction
   const recentAqiValues = historicalData.slice(0, 6).map(d => d.aqi).reverse();
   const prediction = await predictAQI(recentAqiValues);
-  
-  const currentAqi = historicalData[0].aqi;
-  
-  const data: EnvironmentalData = {
+
+  return {
     current: {
       timestamp: now.toISOString(),
       temperature: 25 + (Math.random() * 10 - 5),
       humidity: 60 + (Math.random() * 20 - 10),
       co2: 400 + Math.random() * 600,
       aqi: {
-        value: currentAqi,
-        category: getAqiCategory(currentAqi),
+        value: realAqi,
+        category,
         pollutants: {
-          no2: Math.round(30 + Math.random() * 70),
-          so2: Math.round(20 + Math.random() * 55),
-          o3: Math.round(35 + Math.random() * 35),
-          pm25: Math.round(40 + Math.random() * 60)
+          pm25: pollutants['pm25'],
+          no2: pollutants['no2'],
+          so2: pollutants['so2'],
+          o3: pollutants['o3']
         },
         prediction
       }
@@ -146,6 +203,4 @@ export const fetchEnvironmentalData = async (_city?: string): Promise<Environmen
       { location: 'parks', averageAqi: Math.round(55 + Math.random() * 30) }
     ]
   };
-  
-  return data;
 };

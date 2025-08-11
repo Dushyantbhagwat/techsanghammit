@@ -17,6 +17,7 @@ export function SignupPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
+  const [name, setName] = useState("")
   const [error, setError] = useState("")
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
@@ -44,7 +45,7 @@ export function SignupPage() {
     }
 
     try {
-      await signup(email, password)
+      await signup(email, password, name)
       navigate("/login", { 
         replace: true,
         state: { message: "Account created successfully! Please log in." }
@@ -85,6 +86,22 @@ export function SignupPage() {
         <div className="login__content">
           <div className="login__box">
             <i className="ri-user-3-line login__icon"></i>
+            <div className="login__box-input">
+              <input
+                type="text"
+                required
+                className="login__input"
+                id="signup-name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder=" "
+              />
+              <label htmlFor="signup-name" className="login__label">Full Name</label>
+            </div>
+          </div>
+
+          <div className="login__box">
+            <i className="ri-mail-line login__icon"></i>
             <div className="login__box-input">
               <input
                 type="email"

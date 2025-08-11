@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react"
 import { Link, useLocation, useNavigate } from "react-router-dom"
+import { useAuth } from "@/contexts/AuthContext"
 import "@/styles/Login.css"
 
 const carouselItems = [
@@ -10,12 +11,10 @@ const carouselItems = [
   "Multi-Device Support"
 ]
 
-const VALID_EMAIL = "dbit@gmail.com"
-const VALID_PASSWORD = "dbit"
-
 export function LoginPage() {
   const location = useLocation();
   const navigate = useNavigate();
+  const { login, loading, error: authError } = useAuth();
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
@@ -75,11 +74,11 @@ export function LoginPage() {
     e.preventDefault();
     setError("");
 
-    if (email === VALID_EMAIL && password === VALID_PASSWORD) {
-      sessionStorage.setItem('userEmail', email);
-      navigate('/dashboard');
-    } else {
-      setError("Invalid email or password. Please use dbit@gmail.com/dbit");
+    try {
+      await login(email, password);
+      navigate('/dashboard', { replace: true });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Invalid email or password");
     }
   }
 
@@ -111,9 +110,9 @@ export function LoginPage() {
           </div>
         )}
 
-        {error && (
+        {(error || authError) && (
           <div className="p-3 mb-4 text-sm text-red-400 bg-red-900/50 rounded-xl border border-red-500/20" role="alert">
-            {error}
+            {error || authError}
           </div>
         )}
 
@@ -173,8 +172,9 @@ export function LoginPage() {
         <button 
           type="submit" 
           className="login__button"
+          disabled={loading}
         >
-          Login
+          {loading ? "Logging in..." : "Login"}
         </button>
 
         <p className="login__register">
