@@ -11,6 +11,16 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [isDarkMode, setIsDarkMode] = useState(() => {
+    // Check if settings exist first, then fallback to localStorage
+    const settingsData = localStorage.getItem('appSettings');
+    if (settingsData) {
+      try {
+        const settings = JSON.parse(settingsData);
+        return settings.display?.theme === 'dark';
+      } catch (error) {
+        // Fallback to old localStorage method
+      }
+    }
     const saved = localStorage.getItem('darkMode');
     return saved ? JSON.parse(saved) : true; // Changed default to true for dark mode
   });

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Box, Typography, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Chip } from '@mui/material';
 import { styled } from '@mui/material/styles';
 import { useNavigate } from 'react-router-dom';
@@ -74,62 +74,101 @@ interface AlertTypeFilterProps {
   isCollapsed?: boolean;
 }
 
-const alertTypes = [
-  { 
-    type: 'Critical', 
-    color: '#ff4757', 
-    severity: 'red', 
-    count: 3,
+// Dynamic alert type configuration
+const getAlertTypeConfig = () => [
+  {
+    type: 'Critical',
+    color: '#ff4757',
+    severity: 'red',
     description: 'Immediate attention required'
   },
-  { 
-    type: 'Major', 
-    color: '#ff6b35', 
-    severity: 'yellow', 
-    count: 7,
+  {
+    type: 'Warning',
+    color: '#ffa726',
+    severity: 'yellow',
     description: 'High priority issues'
   },
-  { 
-    type: 'Minor', 
-    color: '#ffa726', 
-    severity: 'yellow', 
-    count: 12,
-    description: 'Low priority issues'
-  },
-  { 
-    type: 'Warning', 
-    color: '#42a5f5', 
-    severity: 'yellow', 
-    count: 5,
-    description: 'Potential issues'
-  },
-  { 
-    type: 'Info', 
-    color: '#66bb6a', 
-    severity: 'green', 
-    count: 15,
+  {
+    type: 'Info',
+    color: '#66bb6a',
+    severity: 'green',
     description: 'General information'
   },
 ];
 
+// Simulate getting alert counts from a global state or API
+const getAlertCounts = () => {
+  // In a real app, this would come from your alert management system
+  const now = new Date();
+  const hour = now.getHours();
+
+  // Simulate varying alert counts based on time of day
+  const baseRed = hour >= 7 && hour <= 9 || hour >= 17 && hour <= 19 ? 3 : 1;
+  const baseYellow = hour >= 8 && hour <= 18 ? 8 : 4;
+  const baseGreen = 2;
+
+  return {
+    red: baseRed + Math.floor(Math.random() * 3),
+    yellow: baseYellow + Math.floor(Math.random() * 5),
+    green: baseGreen + Math.floor(Math.random() * 2)
+  };
+};
+
 export function AlertTypeFilter({ isCollapsed = false }: AlertTypeFilterProps) {
   const navigate = useNavigate();
+  const [alertCounts, setAlertCounts] = useState(getAlertCounts());
+  const alertTypes = getAlertTypeConfig();
 
-  const handleAlertClick = (severity: string, type: string) => {
-    navigate(`/alerts?type=${severity}&category=${type.toLowerCase()}`);
+  // Update alert counts periodically
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setAlertCounts(getAlertCounts());
+    }, 30000); // Update every 30 seconds
+
+    return () => clearInterval(interval);
+  }, []);
+
+  const handleAlertClick = (severity: string) => {
+    navigate(`/alerts?type=${severity}`);
   };
+
+  // Combine alert types with dynamic counts
+  const alertTypesWithCounts = alertTypes.map(alert => ({
+    ...alert,
+    count: alertCounts[alert.severity as keyof typeof alertCounts] || 0
+  }));
 
   if (isCollapsed) {
     return (
       <FilterContainer>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px', alignItems: 'center' }}>
-          {alertTypes.slice(0, 3).map((alert) => (
-            <StatusIndicator 
-              key={alert.type}
-              alertcolor={alert.color}
-              sx={{ cursor: 'pointer' }}
-              onClick={() => handleAlertClick(alert.severity, alert.type)}
-            />
+          {alertTypesWithCounts.slice(0, 3).map((alert) => (
+            <Box key={alert.type} sx={{ position: 'relative', cursor: 'pointer' }} onClick={() => handleAlertClick(alert.severity)}>
+              <StatusIndicator
+                alertcolor={alert.color}
+              />
+              {alert.count > 0 && (
+                <Box
+                  sx={{
+                    position: 'absolute',
+                    top: -4,
+                    right: -4,
+                    backgroundColor: alert.color,
+                    color: 'white',
+                    borderRadius: '50%',
+                    width: 16,
+                    height: 16,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '10px',
+                    fontWeight: 'bold'
+                  }}
+                >
+                  {alert.count > 9 ? '9+' : alert.count}
+                </Box>
+              )}
+            </Box>
           ))}
         </Box>
       </FilterContainer>
@@ -140,9 +179,9 @@ export function AlertTypeFilter({ isCollapsed = false }: AlertTypeFilterProps) {
     <FilterContainer>
       <SectionTitle>Alert Types</SectionTitle>
       <AlertList>
-        {alertTypes.map((alert) => (
+        {alertTypesWithCounts.map((alert) => (
           <ListItem key={alert.type} disablePadding>
-            <AlertItem onClick={() => handleAlertClick(alert.severity, alert.type)}>
+            <AlertItem onClick={() => handleAlertClick(alert.severity)}>
               <ListItemIcon sx={{ minWidth: '24px' }}>
                 <StatusIndicator alertcolor={alert.color} />
               </ListItemIcon>

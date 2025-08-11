@@ -11,6 +11,7 @@ import { CityUpdatesPage } from "./pages/CityUpdatesPage";
 import { AuthProvider } from "./contexts/AuthContext";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { CityProvider } from "./contexts/CityContext";
+import { SettingsProvider } from "./contexts/SettingsContext";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 import { MapView } from "./components/analytics/MapView";
 import CameraMonitoringPage from "./pages/CameraMonitoringPage";
@@ -21,7 +22,8 @@ function App() {
   return (
     <AuthProvider>
       <ThemeProvider>
-        <CityProvider>
+        <SettingsProvider>
+          <CityProvider>
           <Routes>
             {/* Redirect root to login */}
             <Route path="/" element={<Navigate to="/login" replace />} />
@@ -132,7 +134,8 @@ function App() {
             <Route path="/login" element={<LoginPage />} />
             <Route path="/signup" element={<SignupPage />} />
           </Routes>
-        </CityProvider>
+          </CityProvider>
+        </SettingsProvider>
       </ThemeProvider>
     </AuthProvider>
   );

@@ -56,10 +56,8 @@ const denseAreas = [
 
 const alertTypes = [
   { type: "Critical", color: "bg-red-500", severity: "red" },
-  { type: "Major", color: "bg-orange-500", severity: "yellow" },
-  { type: "Minor", color: "bg-yellow-500", severity: "yellow" },
-  { type: "Warning", color: "bg-blue-500", severity: "yellow" },
-  { type: "Informational", color: "bg-gray-500", severity: "green" }
+  { type: "Warning", color: "bg-yellow-500", severity: "yellow" },
+  { type: "Info", color: "bg-green-500", severity: "green" }
 ];
 
 export function Sidebar({ isOpen, onToggle }: SidebarProps) {
@@ -147,16 +145,36 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
           <div className="p-3 border-t border-white/10">
             <div className="text-sm font-medium mb-1">Alerts type</div>
             <div className="space-y-0.5">
-              {alertTypes.map((alert) => (
-                <div 
-                  key={alert.type} 
-                  className="flex items-center gap-2 cursor-pointer hover:bg-white/10 px-2 py-1.5 rounded transition-colors"
-                  onClick={() => handleAlertTypeClick(alert.severity)}
-                >
-                  <div className={cn("h-2 w-2 rounded-full", alert.color)} />
-                  <span className="text-sm">{alert.type}</span>
-                </div>
-              ))}
+              {alertTypes.map((alert) => {
+                // Dynamic count based on time and alert type
+                const now = new Date();
+                const hour = now.getHours();
+                let count = 0;
+
+                if (alert.severity === 'red') {
+                  count = hour >= 7 && hour <= 9 || hour >= 17 && hour <= 19 ? 2 + Math.floor(Math.random() * 3) : Math.floor(Math.random() * 2);
+                } else if (alert.severity === 'yellow') {
+                  count = hour >= 8 && hour <= 18 ? 5 + Math.floor(Math.random() * 5) : 2 + Math.floor(Math.random() * 3);
+                } else {
+                  count = 1 + Math.floor(Math.random() * 2);
+                }
+
+                return (
+                  <div
+                    key={alert.type}
+                    className="flex items-center justify-between cursor-pointer hover:bg-white/10 px-2 py-1.5 rounded transition-colors"
+                    onClick={() => handleAlertTypeClick(alert.severity)}
+                  >
+                    <div className="flex items-center gap-2">
+                      <div className={cn("h-2 w-2 rounded-full", alert.color)} />
+                      <span className="text-sm">{alert.type}</span>
+                    </div>
+                    <span className="text-xs bg-white/20 px-1.5 py-0.5 rounded-full">
+                      {count}
+                    </span>
+                  </div>
+                );
+              })}
             </div>
           </div>
 

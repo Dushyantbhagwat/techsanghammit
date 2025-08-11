@@ -1,10 +1,26 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Card } from "@/components/ui/card";
-import { AlertTriangle, AlertCircle, Bell, Clock, AlertOctagon } from "lucide-react";
+import { AlertTriangle, AlertCircle, Bell, Clock, AlertOctagon, CheckCircle, Eye, Download, X, RefreshCw } from "lucide-react";
 import { ResponsiveLine } from "@nivo/line";
 import { ResponsiveBar } from "@nivo/bar";
 import { VoiceAssistant } from "@/components/alerts/VoiceAssistant";
+
+// Enhanced Alert Interface
+interface Alert {
+  id: number;
+  type: 'red' | 'yellow' | 'green';
+  title: string;
+  description: string;
+  time: string;
+  timestamp: Date;
+  category: string;
+  area: string;
+  status: 'active' | 'acknowledged' | 'resolved';
+  priority: number;
+  source: string;
+  metadata?: Record<string, any>;
+}
 
 // Thresholds for different metrics
 const THRESHOLDS = {
@@ -35,14 +51,39 @@ const THRESHOLDS = {
   }
 };
 
-// Mock current values (in a real app, these would come from your analytics data)
-const currentValues = {
+// Dynamic current values that change over time to simulate real-time data
+let currentValues = {
   traffic: 2700,
   aqi: 120,
   co2: 850,
   temperature: 32,
-  humidity: 75
+  humidity: 75,
+  parking: 85, // percentage occupied
+  security: 0, // incidents count
+  infrastructure: 95 // health percentage
 };
+
+// Areas and their characteristics
+const AREAS = [
+  { name: "Downtown", riskFactor: 1.2, population: "high" },
+  { name: "Suburban Area", riskFactor: 0.8, population: "medium" },
+  { name: "Industrial Zone", riskFactor: 1.5, population: "low" },
+  { name: "Residential District", riskFactor: 0.6, population: "high" },
+  { name: "Commercial Hub", riskFactor: 1.1, population: "high" },
+  { name: "Tech Park", riskFactor: 0.9, population: "medium" }
+];
+
+// Alert sources for realistic generation
+const ALERT_SOURCES = [
+  "Traffic Monitoring System",
+  "Environmental Sensors",
+  "Security Cameras",
+  "Infrastructure Monitors",
+  "Parking Management",
+  "Emergency Services",
+  "Citizen Reports",
+  "IoT Sensors"
+];
 
 function getAlertLevel(value: number, thresholds: { red: number; yellow: number; green: number }) {
   if (value >= thresholds.red) return 'red';
@@ -74,73 +115,234 @@ const alertsData = [
   { hour: "21:00", count: 2 }
 ];
 
-// Generate alerts based on current values and thresholds
-function generateAlerts() {
-  const alerts = [];
-  const areas = ["Downtown", "Suburban Area", "Industrial Zone", "Residential District"];
-  let id = 1;
+// Simulate realistic data fluctuations
+function updateCurrentValues() {
+  const now = new Date();
+  const hour = now.getHours();
+
+  // Traffic patterns based on time of day
+  const trafficBase = hour >= 7 && hour <= 9 || hour >= 17 && hour <= 19 ? 3200 :
+                     hour >= 10 && hour <= 16 ? 2400 : 1800;
+  currentValues.traffic = Math.max(1000, trafficBase + (Math.random() - 0.5) * 800);
+
+  // Environmental factors with daily patterns
+  currentValues.aqi = Math.max(20, 80 + (Math.random() - 0.5) * 100 + (hour > 6 && hour < 20 ? 20 : -10));
+  currentValues.co2 = Math.max(400, 700 + (Math.random() - 0.5) * 400 + (hour > 8 && hour < 18 ? 100 : -50));
+  currentValues.temperature = Math.max(15, 25 + (Math.random() - 0.5) * 20 + Math.sin((hour - 6) * Math.PI / 12) * 8);
+  currentValues.humidity = Math.max(30, Math.min(90, 60 + (Math.random() - 0.5) * 40));
+
+  // Other systems
+  currentValues.parking = Math.max(20, Math.min(95, 70 + (Math.random() - 0.5) * 50));
+  currentValues.security = Math.random() < 0.1 ? Math.floor(Math.random() * 3) : 0;
+  currentValues.infrastructure = Math.max(80, Math.min(100, 95 + (Math.random() - 0.5) * 20));
+}
+
+// Enhanced alert generation with realistic scenarios
+function generateDynamicAlerts(): Alert[] {
+  const alerts: Alert[] = [];
+  let id = Date.now(); // Use timestamp for unique IDs
+
+  // Update values first
+  updateCurrentValues();
 
   // Traffic alerts
   const trafficLevel = getAlertLevel(currentValues.traffic, THRESHOLDS.traffic);
   if (trafficLevel !== 'green') {
+    const area = AREAS[Math.floor(Math.random() * AREAS.length)];
+    const minutesAgo = Math.floor(Math.random() * 30) + 1;
     alerts.push({
       id: id++,
-      type: trafficLevel,
-      title: `High Traffic Volume`,
-      description: `Traffic flow exceeding ${trafficLevel === 'red' ? 'critical' : 'warning'} threshold in ${areas[0]}`,
-      time: "10 minutes ago",
+      type: trafficLevel as 'red' | 'yellow' | 'green',
+      title: `${trafficLevel === 'red' ? 'Critical' : 'High'} Traffic Congestion`,
+      description: `Traffic volume at ${Math.round(currentValues.traffic)} vehicles/hour in ${area.name}. ${trafficLevel === 'red' ? 'Emergency response may be delayed.' : 'Consider alternate routes.'}`,
+      time: `${minutesAgo} minute${minutesAgo > 1 ? 's' : ''} ago`,
+      timestamp: new Date(Date.now() - minutesAgo * 60000),
       category: "Traffic",
-      area: areas[0]
+      area: area.name,
+      status: 'active',
+      priority: trafficLevel === 'red' ? 1 : 2,
+      source: "Traffic Monitoring System",
+      metadata: { vehicleCount: Math.round(currentValues.traffic), threshold: THRESHOLDS.traffic[trafficLevel] }
     });
   }
 
-  // AQI alerts
+  // Environmental alerts
   const aqiLevel = getAlertLevel(currentValues.aqi, THRESHOLDS.aqi);
   if (aqiLevel !== 'green') {
+    const area = AREAS[Math.floor(Math.random() * AREAS.length)];
+    const minutesAgo = Math.floor(Math.random() * 45) + 5;
     alerts.push({
       id: id++,
-      type: aqiLevel,
+      type: aqiLevel as 'red' | 'yellow' | 'green',
       title: "Air Quality Alert",
-      description: `AQI levels at ${currentValues.aqi} in ${areas[1]} - ${aqiLevel === 'red' ? 'Hazardous' : 'Unhealthy'} conditions`,
-      time: "25 minutes ago",
+      description: `AQI at ${Math.round(currentValues.aqi)} in ${area.name}. ${aqiLevel === 'red' ? 'Hazardous conditions - avoid outdoor activities.' : 'Unhealthy for sensitive groups.'}`,
+      time: `${minutesAgo} minute${minutesAgo > 1 ? 's' : ''} ago`,
+      timestamp: new Date(Date.now() - minutesAgo * 60000),
       category: "Environmental",
-      area: areas[1]
+      area: area.name,
+      status: 'active',
+      priority: aqiLevel === 'red' ? 1 : 2,
+      source: "Environmental Sensors",
+      metadata: { aqiValue: Math.round(currentValues.aqi), category: aqiLevel === 'red' ? 'Hazardous' : 'Unhealthy' }
     });
   }
 
   // CO2 alerts
   const co2Level = getAlertLevel(currentValues.co2, THRESHOLDS.co2);
   if (co2Level !== 'green') {
+    const area = AREAS[Math.floor(Math.random() * AREAS.length)];
+    const minutesAgo = Math.floor(Math.random() * 20) + 1;
     alerts.push({
       id: id++,
-      type: co2Level,
-      title: "High CO₂ Levels",
-      description: `CO₂ concentration at ${currentValues.co2}ppm in ${areas[2]}`,
-      time: "15 minutes ago",
+      type: co2Level as 'red' | 'yellow' | 'green',
+      title: "Elevated CO₂ Levels",
+      description: `CO₂ concentration at ${Math.round(currentValues.co2)}ppm in ${area.name}. ${co2Level === 'red' ? 'Immediate ventilation required.' : 'Monitor air quality.'}`,
+      time: `${minutesAgo} minute${minutesAgo > 1 ? 's' : ''} ago`,
+      timestamp: new Date(Date.now() - minutesAgo * 60000),
       category: "Environmental",
-      area: areas[2]
+      area: area.name,
+      status: 'active',
+      priority: co2Level === 'red' ? 1 : 2,
+      source: "IoT Sensors",
+      metadata: { co2Level: Math.round(currentValues.co2), unit: 'ppm' }
     });
   }
 
   // Temperature alerts
   const tempLevel = getAlertLevel(currentValues.temperature, THRESHOLDS.temperature);
   if (tempLevel !== 'green') {
+    const area = AREAS[Math.floor(Math.random() * AREAS.length)];
+    const minutesAgo = Math.floor(Math.random() * 15) + 1;
     alerts.push({
       id: id++,
-      type: tempLevel,
-      title: "High Temperature",
-      description: `Temperature at ${currentValues.temperature}°C in ${areas[3]}`,
-      time: "5 minutes ago",
+      type: tempLevel as 'red' | 'yellow' | 'green',
+      title: `${tempLevel === 'red' ? 'Extreme' : 'High'} Temperature Alert`,
+      description: `Temperature at ${Math.round(currentValues.temperature)}°C in ${area.name}. ${tempLevel === 'red' ? 'Heat emergency protocols activated.' : 'Heat advisory in effect.'}`,
+      time: `${minutesAgo} minute${minutesAgo > 1 ? 's' : ''} ago`,
+      timestamp: new Date(Date.now() - minutesAgo * 60000),
       category: "Environmental",
-      area: areas[3]
+      area: area.name,
+      status: 'active',
+      priority: tempLevel === 'red' ? 1 : 2,
+      source: "Environmental Sensors",
+      metadata: { temperature: Math.round(currentValues.temperature), unit: '°C' }
     });
   }
 
-  return alerts;
+  // Parking alerts
+  if (currentValues.parking > 90) {
+    const area = AREAS[Math.floor(Math.random() * AREAS.length)];
+    const minutesAgo = Math.floor(Math.random() * 10) + 1;
+    alerts.push({
+      id: id++,
+      type: 'yellow',
+      title: "Parking Capacity Alert",
+      description: `Parking ${Math.round(currentValues.parking)}% full in ${area.name}. Limited spaces available.`,
+      time: `${minutesAgo} minute${minutesAgo > 1 ? 's' : ''} ago`,
+      timestamp: new Date(Date.now() - minutesAgo * 60000),
+      category: "Parking",
+      area: area.name,
+      status: 'active',
+      priority: 3,
+      source: "Parking Management",
+      metadata: { occupancyRate: Math.round(currentValues.parking), unit: '%' }
+    });
+  }
+
+  // Security alerts
+  if (currentValues.security > 0) {
+    const area = AREAS[Math.floor(Math.random() * AREAS.length)];
+    const minutesAgo = Math.floor(Math.random() * 5) + 1;
+    alerts.push({
+      id: id++,
+      type: 'red',
+      title: "Security Incident",
+      description: `${currentValues.security} security incident${currentValues.security > 1 ? 's' : ''} reported in ${area.name}. Emergency response dispatched.`,
+      time: `${minutesAgo} minute${minutesAgo > 1 ? 's' : ''} ago`,
+      timestamp: new Date(Date.now() - minutesAgo * 60000),
+      category: "Security",
+      area: area.name,
+      status: 'active',
+      priority: 1,
+      source: "Security Cameras",
+      metadata: { incidentCount: currentValues.security }
+    });
+  }
+
+  // Infrastructure alerts
+  if (currentValues.infrastructure < 90) {
+    const area = AREAS[Math.floor(Math.random() * AREAS.length)];
+    const minutesAgo = Math.floor(Math.random() * 60) + 10;
+    const severity = currentValues.infrastructure < 85 ? 'red' : 'yellow';
+    alerts.push({
+      id: id++,
+      type: severity,
+      title: "Infrastructure Health Alert",
+      description: `Infrastructure health at ${Math.round(currentValues.infrastructure)}% in ${area.name}. ${severity === 'red' ? 'Critical maintenance required.' : 'Scheduled maintenance recommended.'}`,
+      time: `${minutesAgo} minute${minutesAgo > 1 ? 's' : ''} ago`,
+      timestamp: new Date(Date.now() - minutesAgo * 60000),
+      category: "Infrastructure",
+      area: area.name,
+      status: 'active',
+      priority: severity === 'red' ? 1 : 2,
+      source: "Infrastructure Monitors",
+      metadata: { healthScore: Math.round(currentValues.infrastructure), unit: '%' }
+    });
+  }
+
+  // Random additional alerts for variety
+  if (Math.random() < 0.3) {
+    const randomAlerts = [
+      {
+        type: 'yellow' as const,
+        title: "Citizen Report",
+        description: "Pothole reported on Main Street. Maintenance crew notified.",
+        category: "Infrastructure",
+        source: "Citizen Reports"
+      },
+      {
+        type: 'green' as const,
+        title: "System Update",
+        description: "Traffic light system updated successfully. All signals operational.",
+        category: "Infrastructure",
+        source: "Infrastructure Monitors"
+      },
+      {
+        type: 'yellow' as const,
+        title: "Weather Advisory",
+        description: "Heavy rain expected. Monitor flood-prone areas.",
+        category: "Environmental",
+        source: "Weather Service"
+      }
+    ];
+
+    const randomAlert = randomAlerts[Math.floor(Math.random() * randomAlerts.length)];
+    const area = AREAS[Math.floor(Math.random() * AREAS.length)];
+    const minutesAgo = Math.floor(Math.random() * 120) + 5;
+
+    alerts.push({
+      id: id++,
+      type: randomAlert.type,
+      title: randomAlert.title,
+      description: randomAlert.description,
+      time: `${minutesAgo} minute${minutesAgo > 1 ? 's' : ''} ago`,
+      timestamp: new Date(Date.now() - minutesAgo * 60000),
+      category: randomAlert.category,
+      area: area.name,
+      status: 'active',
+      priority: randomAlert.type === 'red' ? 1 : randomAlert.type === 'yellow' ? 2 : 3,
+      source: randomAlert.source,
+      metadata: {}
+    });
+  }
+
+  return alerts.sort((a, b) => a.priority - b.priority || b.timestamp.getTime() - a.timestamp.getTime());
 }
 
 const categories = ["All", "Traffic", "Environmental", "Infrastructure", "Security", "Parking"];
 const types = ["All", "Red", "Yellow", "Green"];
+const statuses = ["All", "Active", "Acknowledged", "Resolved"];
+const areas = ["All", ...AREAS.map(area => area.name)];
 
 const chartTheme = {
   textColor: "#ffffff",
@@ -184,12 +386,74 @@ const chartTheme = {
 
 export function AlertsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [selectedCategory, setSelectedCategory] = useState("All");
+  const [selectedCategory, setSelectedCategory] = useState(() => {
+    const categoryParam = searchParams.get('category');
+    return categoryParam ? categoryParam.charAt(0).toUpperCase() + categoryParam.slice(1) : "All";
+  });
   const [selectedType, setSelectedType] = useState(() => {
     const typeParam = searchParams.get('type');
     return typeParam ? typeParam.charAt(0).toUpperCase() + typeParam.slice(1) : "All";
   });
-  const [alerts, setAlerts] = useState(generateAlerts());
+  const [selectedStatus, setSelectedStatus] = useState("All");
+  const [selectedArea, setSelectedArea] = useState("All");
+  const [alerts, setAlerts] = useState<Alert[]>([]);
+  const [alertHistory, setAlertHistory] = useState<Alert[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [selectedAlert, setSelectedAlert] = useState<Alert | null>(null);
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  // Alert management functions
+  const acknowledgeAlert = useCallback((alertId: number) => {
+    setAlerts(prev => prev.map(alert =>
+      alert.id === alertId ? { ...alert, status: 'acknowledged' } : alert
+    ));
+    setAlertHistory(prev => prev.map(alert =>
+      alert.id === alertId ? { ...alert, status: 'acknowledged' } : alert
+    ));
+  }, []);
+
+  const resolveAlert = useCallback((alertId: number) => {
+    setAlerts(prev => prev.map(alert =>
+      alert.id === alertId ? { ...alert, status: 'resolved' } : alert
+    ));
+    setAlertHistory(prev => prev.map(alert =>
+      alert.id === alertId ? { ...alert, status: 'resolved' } : alert
+    ));
+  }, []);
+
+  const viewAlertDetails = useCallback((alert: Alert) => {
+    setSelectedAlert(alert);
+    setShowDetailModal(true);
+  }, []);
+
+  const exportAlerts = useCallback(() => {
+    const currentFilteredAlerts = alerts.filter(alert => {
+      const categoryMatch = selectedCategory === "All" || alert.category === selectedCategory;
+      const typeMatch = selectedType === "All" || alert.type === selectedType.toLowerCase();
+      const statusMatch = selectedStatus === "All" || alert.status === selectedStatus.toLowerCase();
+      const areaMatch = selectedArea === "All" || alert.area === selectedArea;
+      return categoryMatch && typeMatch && statusMatch && areaMatch;
+    });
+
+    const dataStr = JSON.stringify(currentFilteredAlerts, null, 2);
+    const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+    const exportFileDefaultName = `alerts_${new Date().toISOString().split('T')[0]}.json`;
+
+    const linkElement = document.createElement('a');
+    linkElement.setAttribute('href', dataUri);
+    linkElement.setAttribute('download', exportFileDefaultName);
+    linkElement.click();
+  }, [alerts, selectedCategory, selectedType, selectedStatus, selectedArea]);
+
+  const refreshAlerts = useCallback(() => {
+    setIsLoading(true);
+    setTimeout(() => {
+      const newAlerts = generateDynamicAlerts();
+      setAlerts(newAlerts);
+      setAlertHistory(prev => [...prev, ...newAlerts].slice(-100)); // Keep last 100 alerts
+      setIsLoading(false);
+    }, 1000);
+  }, []);
+
   const [voiceAssistantData, setVoiceAssistantData] = useState({
     time: new Date().toLocaleTimeString(),
     date: new Date().toLocaleDateString(),
@@ -227,24 +491,39 @@ export function AlertsPage() {
     }
   });
 
-  // Update selected type when URL changes
+  // Initialize alerts on component mount
+  useEffect(() => {
+    const initialAlerts = generateDynamicAlerts();
+    setAlerts(initialAlerts);
+    setAlertHistory(initialAlerts);
+  }, []);
+
+  // Update filters when URL changes
   useEffect(() => {
     const typeParam = searchParams.get('type');
+    const categoryParam = searchParams.get('category');
+
     if (typeParam) {
       setSelectedType(typeParam.charAt(0).toUpperCase() + typeParam.slice(1));
     }
+    if (categoryParam) {
+      setSelectedCategory(categoryParam.charAt(0).toUpperCase() + categoryParam.slice(1));
+    }
   }, [searchParams]);
 
-  // Simulate real-time updates
+  // Real-time updates with dynamic data
   useEffect(() => {
     const interval = setInterval(() => {
-      setAlerts(generateAlerts());
+      const newAlerts = generateDynamicAlerts();
+      setAlerts(newAlerts);
+      setAlertHistory(prev => [...prev, ...newAlerts].slice(-100));
+
       setVoiceAssistantData(prev => ({
         ...prev,
         time: new Date().toLocaleTimeString(),
         date: new Date().toLocaleDateString(),
         traffic: {
-          vehicleCount: currentValues.traffic,
+          vehicleCount: Math.round(currentValues.traffic),
           congestionLevel: getAlertLevel(currentValues.traffic, THRESHOLDS.traffic) === 'red'
             ? 'high'
             : getAlertLevel(currentValues.traffic, THRESHOLDS.traffic) === 'yellow'
@@ -252,7 +531,7 @@ export function AlertsPage() {
             : 'low'
         },
         aqi: {
-          value: currentValues.aqi,
+          value: Math.round(currentValues.aqi),
           category: getAlertLevel(currentValues.aqi, THRESHOLDS.aqi) === 'red'
             ? 'hazardous'
             : getAlertLevel(currentValues.aqi, THRESHOLDS.aqi) === 'yellow'
@@ -260,7 +539,7 @@ export function AlertsPage() {
             : 'good'
         },
         co2: {
-          value: currentValues.co2,
+          value: Math.round(currentValues.co2),
           status: getAlertLevel(currentValues.co2, THRESHOLDS.co2) === 'red'
             ? 'critically high'
             : getAlertLevel(currentValues.co2, THRESHOLDS.co2) === 'yellow'
@@ -268,7 +547,7 @@ export function AlertsPage() {
             : 'normal'
         },
         temperature: {
-          value: currentValues.temperature,
+          value: Math.round(currentValues.temperature),
           status: getAlertLevel(currentValues.temperature, THRESHOLDS.temperature) === 'red'
             ? 'extremely hot'
             : getAlertLevel(currentValues.temperature, THRESHOLDS.temperature) === 'yellow'
@@ -276,7 +555,7 @@ export function AlertsPage() {
             : 'comfortable'
         }
       }));
-    }, 30000); // Update every 30 seconds
+    }, 15000); // Update every 15 seconds for more dynamic feel
 
     return () => clearInterval(interval);
   }, []);
@@ -293,42 +572,123 @@ export function AlertsPage() {
 
   const handleCategoryChange = (category: string) => {
     setSelectedCategory(category);
+    if (category === "All") {
+      searchParams.delete('category');
+    } else {
+      searchParams.set('category', category.toLowerCase());
+    }
+    setSearchParams(searchParams);
+  };
+
+  const handleStatusChange = (status: string) => {
+    setSelectedStatus(status);
+  };
+
+  const handleAreaChange = (area: string) => {
+    setSelectedArea(area);
   };
 
   const filteredAlerts = alerts.filter(alert => {
     const categoryMatch = selectedCategory === "All" || alert.category === selectedCategory;
     const typeMatch = selectedType === "All" || alert.type === selectedType.toLowerCase();
-    return categoryMatch && typeMatch;
+    const statusMatch = selectedStatus === "All" || alert.status === selectedStatus.toLowerCase();
+    const areaMatch = selectedArea === "All" || alert.area === selectedArea;
+    return categoryMatch && typeMatch && statusMatch && areaMatch;
   });
 
   return (
     <div className="p-3 sm:p-6 space-y-4 sm:space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
-        <h1 className="text-2xl sm:text-3xl font-bold">Alerts</h1>
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-4 w-full sm:w-auto">
-          <select
-            value={selectedType}
-            onChange={(e) => handleTypeChange(e.target.value)}
-            className="px-2 sm:px-3 py-1.5 sm:py-2 bg-black text-white border border-gray-800 rounded-md text-xs sm:text-sm hover:border-gray-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
-          >
-            {types.map(type => (
-              <option key={type} value={type} className="bg-black text-white">
-                {type}
-              </option>
-            ))}
-          </select>
-          <select
-            value={selectedCategory}
-            onChange={(e) => handleCategoryChange(e.target.value)}
-            className="px-2 sm:px-3 py-1.5 sm:py-2 bg-black text-white border border-gray-800 rounded-md text-xs sm:text-sm hover:border-gray-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
-          >
-            {categories.map(category => (
-              <option key={category} value={category} className="bg-black text-white">
-                {category}
-              </option>
-            ))}
-          </select>
+        <div className="flex items-center gap-3">
+          <h1 className="text-2xl sm:text-3xl font-bold">Alerts</h1>
+          {isLoading && (
+            <RefreshCw className="h-5 w-5 animate-spin text-blue-500" />
+          )}
         </div>
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3 w-full sm:w-auto">
+          <button
+            onClick={refreshAlerts}
+            disabled={isLoading}
+            className="px-3 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white rounded-md text-xs sm:text-sm transition-colors flex items-center gap-2"
+          >
+            <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+            Refresh
+          </button>
+          <button
+            onClick={exportAlerts}
+            className="px-3 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md text-xs sm:text-sm transition-colors flex items-center gap-2"
+          >
+            <Download className="h-4 w-4" />
+            Export
+          </button>
+        </div>
+      </div>
+
+      {/* Enhanced Filter Controls */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        <select
+          value={selectedType}
+          onChange={(e) => handleTypeChange(e.target.value)}
+          className="px-3 py-2 bg-black text-white border border-gray-800 rounded-md text-sm hover:border-gray-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+        >
+          <option value="" disabled className="text-gray-400">Severity</option>
+          {types.map(type => (
+            <option key={type} value={type} className="bg-black text-white">
+              {type} {type !== 'All' ? 'Alerts' : ''}
+            </option>
+          ))}
+        </select>
+        <select
+          value={selectedCategory}
+          onChange={(e) => handleCategoryChange(e.target.value)}
+          className="px-3 py-2 bg-black text-white border border-gray-800 rounded-md text-sm hover:border-gray-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+        >
+          <option value="" disabled className="text-gray-400">Category</option>
+          {categories.map(category => (
+            <option key={category} value={category} className="bg-black text-white">
+              {category}
+            </option>
+          ))}
+        </select>
+        <select
+          value={selectedStatus}
+          onChange={(e) => handleStatusChange(e.target.value)}
+          className="px-3 py-2 bg-black text-white border border-gray-800 rounded-md text-sm hover:border-gray-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+        >
+          <option value="" disabled className="text-gray-400">Status</option>
+          {statuses.map(status => (
+            <option key={status} value={status} className="bg-black text-white">
+              {status}
+            </option>
+          ))}
+        </select>
+        <select
+          value={selectedArea}
+          onChange={(e) => handleAreaChange(e.target.value)}
+          className="px-3 py-2 bg-black text-white border border-gray-800 rounded-md text-sm hover:border-gray-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+        >
+          <option value="" disabled className="text-gray-400">Area</option>
+          {areas.map(area => (
+            <option key={area} value={area} className="bg-black text-white">
+              {area}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {/* Filter Summary */}
+      <div className="flex flex-wrap items-center gap-2 text-sm text-gray-400">
+        <span>Showing {filteredAlerts.length} of {alerts.length} alerts</span>
+        {(selectedType !== "All" || selectedCategory !== "All" || selectedStatus !== "All" || selectedArea !== "All") && (
+          <>
+            <span>•</span>
+            <span>Filtered by:</span>
+            {selectedType !== "All" && <span className="px-2 py-1 bg-gray-800 rounded text-xs">{selectedType}</span>}
+            {selectedCategory !== "All" && <span className="px-2 py-1 bg-gray-800 rounded text-xs">{selectedCategory}</span>}
+            {selectedStatus !== "All" && <span className="px-2 py-1 bg-gray-800 rounded text-xs">{selectedStatus}</span>}
+            {selectedArea !== "All" && <span className="px-2 py-1 bg-gray-800 rounded text-xs">{selectedArea}</span>}
+          </>
+        )}
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
@@ -604,40 +964,217 @@ export function AlertsPage() {
       </div>
 
       <div className="space-y-4">
-        {filteredAlerts.map(alert => {
-          const severity = getAlertSeverity(alert.type);
-          const Icon = severity.icon;
-          return (
-            <Card key={alert.id} className="p-3 sm:p-4">
-              <div className="flex flex-col sm:flex-row sm:items-start gap-3 sm:gap-4">
-                <div className={`p-2 rounded-lg bg-${severity.color}-100 self-start`}>
-                  <Icon className={`h-4 sm:h-5 w-4 sm:w-5 text-${severity.color}-600`} />
-                </div>
-                <div className="flex-1">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-0">
-                    <div>
-                      <h3 className="text-sm sm:text-base font-medium">{alert.title}</h3>
-                      <p className="text-xs sm:text-sm text-gray-500 mt-1">{alert.description}</p>
-                    </div>
-                    <div className="flex items-center gap-2 self-start">
-                      <span className={`text-xs sm:text-sm px-2 py-1 rounded-full bg-${severity.color}-100 text-${severity.color}-600`}>
-                        {alert.category}
-                      </span>
-                      <div className="flex items-center gap-1 text-xs sm:text-sm text-gray-500">
-                        <Clock className="h-3 sm:h-4 w-3 sm:w-4" />
-                        {alert.time}
+        {filteredAlerts.length === 0 ? (
+          <Card className="p-8 text-center">
+            <div className="text-gray-400">
+              <Bell className="h-12 w-12 mx-auto mb-4 opacity-50" />
+              <h3 className="text-lg font-medium mb-2">No alerts found</h3>
+              <p className="text-sm">Try adjusting your filters or refresh to see new alerts.</p>
+            </div>
+          </Card>
+        ) : (
+          filteredAlerts.map(alert => {
+            const severity = getAlertSeverity(alert.type);
+            const Icon = severity.icon;
+            const statusColor = alert.status === 'resolved' ? 'text-green-600' :
+                               alert.status === 'acknowledged' ? 'text-yellow-600' : 'text-red-600';
+
+            return (
+              <Card key={alert.id} className={`p-3 sm:p-4 transition-all duration-200 hover:shadow-lg ${
+                alert.status === 'resolved' ? 'opacity-75 border-green-200' :
+                alert.status === 'acknowledged' ? 'border-yellow-200' : ''
+              }`}>
+                <div className="flex flex-col sm:flex-row sm:items-start gap-3 sm:gap-4">
+                  <div className={`p-2 rounded-lg bg-${severity.color}-100 self-start relative`}>
+                    <Icon className={`h-4 sm:h-5 w-4 sm:w-5 text-${severity.color}-600`} />
+                    {alert.status === 'resolved' && (
+                      <CheckCircle className="h-3 w-3 text-green-600 absolute -top-1 -right-1 bg-white rounded-full" />
+                    )}
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 sm:gap-4">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <h3 className="text-sm sm:text-base font-medium">{alert.title}</h3>
+                          <span className={`text-xs px-2 py-1 rounded-full ${statusColor} bg-opacity-10 border border-current`}>
+                            {alert.status.charAt(0).toUpperCase() + alert.status.slice(1)}
+                          </span>
+                        </div>
+                        <p className="text-xs sm:text-sm text-gray-500 mt-1">{alert.description}</p>
+                        <div className="flex flex-wrap items-center gap-3 mt-2 text-xs text-gray-500">
+                          <div className="flex items-center gap-1">
+                            <Clock className="h-3 w-3" />
+                            {alert.time}
+                          </div>
+                          <div>Location: {alert.area}</div>
+                          <div>Source: {alert.source}</div>
+                          <span className={`px-2 py-1 rounded-full bg-${severity.color}-100 text-${severity.color}-600 text-xs`}>
+                            {alert.category}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Action Buttons */}
+                      <div className="flex items-center gap-2 self-start">
+                        <button
+                          onClick={() => viewAlertDetails(alert)}
+                          className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                          title="View Details"
+                        >
+                          <Eye className="h-4 w-4" />
+                        </button>
+                        {alert.status === 'active' && (
+                          <>
+                            <button
+                              onClick={() => acknowledgeAlert(alert.id)}
+                              className="p-2 text-gray-400 hover:text-yellow-600 hover:bg-yellow-50 rounded-lg transition-colors"
+                              title="Acknowledge"
+                            >
+                              <CheckCircle className="h-4 w-4" />
+                            </button>
+                            <button
+                              onClick={() => resolveAlert(alert.id)}
+                              className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                              title="Resolve"
+                            >
+                              <X className="h-4 w-4" />
+                            </button>
+                          </>
+                        )}
+                        {alert.status === 'acknowledged' && (
+                          <button
+                            onClick={() => resolveAlert(alert.id)}
+                            className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                            title="Resolve"
+                          >
+                            <X className="h-4 w-4" />
+                          </button>
+                        )}
                       </div>
                     </div>
                   </div>
-                  <div className="mt-2 text-xs sm:text-sm text-gray-500">
-                    Location: {alert.area}
+                </div>
+              </Card>
+            );
+          })
+        )}
+      </div>
+
+      {/* Alert Detail Modal */}
+      {showDetailModal && selectedAlert && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-bold">Alert Details</h2>
+                <button
+                  onClick={() => setShowDetailModal(false)}
+                  className="p-2 text-gray-400 hover:text-gray-600 rounded-lg"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">Alert ID</label>
+                    <p className="text-sm">{selectedAlert.id}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">Priority</label>
+                    <p className="text-sm">{selectedAlert.priority === 1 ? 'Critical' : selectedAlert.priority === 2 ? 'High' : 'Medium'}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">Category</label>
+                    <p className="text-sm">{selectedAlert.category}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">Status</label>
+                    <p className="text-sm capitalize">{selectedAlert.status}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">Area</label>
+                    <p className="text-sm">{selectedAlert.area}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">Source</label>
+                    <p className="text-sm">{selectedAlert.source}</p>
                   </div>
                 </div>
+
+                <div>
+                  <label className="text-sm font-medium text-gray-500">Title</label>
+                  <p className="text-lg font-medium">{selectedAlert.title}</p>
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium text-gray-500">Description</label>
+                  <p className="text-sm">{selectedAlert.description}</p>
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium text-gray-500">Timestamp</label>
+                  <p className="text-sm">{selectedAlert.timestamp.toLocaleString()}</p>
+                </div>
+
+                {selectedAlert.metadata && Object.keys(selectedAlert.metadata).length > 0 && (
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">Additional Data</label>
+                    <div className="bg-gray-100 dark:bg-gray-700 rounded p-3 text-sm">
+                      <pre className="whitespace-pre-wrap">
+                        {JSON.stringify(selectedAlert.metadata, null, 2)}
+                      </pre>
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex gap-3 pt-4 border-t">
+                  {selectedAlert.status === 'active' && (
+                    <>
+                      <button
+                        onClick={() => {
+                          acknowledgeAlert(selectedAlert.id);
+                          setShowDetailModal(false);
+                        }}
+                        className="px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white rounded-lg transition-colors"
+                      >
+                        Acknowledge
+                      </button>
+                      <button
+                        onClick={() => {
+                          resolveAlert(selectedAlert.id);
+                          setShowDetailModal(false);
+                        }}
+                        className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors"
+                      >
+                        Resolve
+                      </button>
+                    </>
+                  )}
+                  {selectedAlert.status === 'acknowledged' && (
+                    <button
+                      onClick={() => {
+                        resolveAlert(selectedAlert.id);
+                        setShowDetailModal(false);
+                      }}
+                      className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors"
+                    >
+                      Resolve
+                    </button>
+                  )}
+                  <button
+                    onClick={() => setShowDetailModal(false)}
+                    className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors"
+                  >
+                    Close
+                  </button>
+                </div>
               </div>
-            </Card>
-          );
-        })}
-      </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
