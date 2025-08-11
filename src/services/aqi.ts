@@ -54,6 +54,15 @@ export const getAqiCategory = (aqi: number): string => {
   return 'Hazardous';
 };
 
+export const getAqiImpact = (aqi: number): string => {
+  if (aqi <= 50) return 'Air quality is satisfactory, and air pollution poses little or no risk.';
+  if (aqi <= 100) return 'Air quality is acceptable. However, there may be a risk for some people, particularly those who are unusually sensitive to air pollution.';
+  if (aqi <= 150) return 'Members of sensitive groups may experience health effects. The general public is less likely to be affected.';
+  if (aqi <= 200) return 'Some members of the general public may experience health effects; members of sensitive groups may experience more serious health effects.';
+  if (aqi <= 300) return 'Health alert: The risk of health effects is increased for everyone.';
+  return 'Health warning of emergency conditions: everyone is more likely to be affected.';
+};
+
 // 🟡 Fetch real AQI from Google API
 interface GoogleAirQualityResponse {
   currentConditions: {

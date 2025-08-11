@@ -29,6 +29,7 @@
     "clsx": "^2.0.0",
     "date-fns": "^4.1.0",
     "esbuild": "^0.25.1",
+    "framer-motion": "^12.23.12",
     "leaflet": "^1.9.4",
     "lucide-react": "^0.294.0",
     "mongoose": "^8.12.1",
