@@ -75,7 +75,6 @@
   }
 }
 
-/* Night Vision Effect Animation */
 .night-vision {
   position: relative;
   animation: nightVisionPulse 4s infinite;
@@ -93,7 +92,6 @@
   }
 }
 
-/* Video Playback Optimization */
 video {
   backface-visibility: hidden;
   transform: translateZ(0);
@@ -101,7 +99,6 @@ video {
   will-change: transform;
 }
 
-/* Parking Analytics Styles */
 .parking-status-card {
   transition: all 0.3s ease;
 }
@@ -115,7 +112,6 @@ video {
   transition: width 0.5s ease-in-out;
 }
 
-/* Loading Animation */
 @keyframes shimmer {
   0% {
     background-position: -200% 0;
@@ -136,7 +132,6 @@ video {
   animation: shimmer 1.5s infinite;
 }
 
-/* Status Indicators */
 .status-indicator {
   display: inline-block;
   width: 8px;
@@ -160,7 +155,6 @@ video {
   box-shadow: 0 0 8px rgba(239, 68, 68, 0.4);
 }
 
-/* Tooltip Styles */
 .parking-tooltip {
   background-color: white;
   border-radius: 6px;

@@ -1,8 +1,4 @@
 import { cn } from "@/lib/utils";
-
-const formatCityName = (city: string) => {
-  return city.charAt(0).toUpperCase() + city.slice(1);
-};
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   ChevronDown,
@@ -18,6 +14,10 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { useCity } from "@/contexts/CityContext";
+
+const formatCityName = (city: string) => {
+  return city.charAt(0).toUpperCase() + city.slice(1);
+};
 
 interface SidebarProps {
   isOpen: boolean;
