@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { Plus } from "lucide-react";
 import { useCity } from "@/contexts/CityContext";
-
 type TabValue = 'updates' | 'business';
 
 export function CityUpdatesPage() {
