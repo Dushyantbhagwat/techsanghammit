@@ -1,4 +1,8 @@
 import { cn } from "@/lib/utils";
+
+const formatCityName = (city: string) => {
+  return city.charAt(0).toUpperCase() + city.slice(1);
+};
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   ChevronDown,
@@ -14,10 +18,6 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { useCity } from "@/contexts/CityContext";
-
-const formatCityName = (city: string) => {
-  return city.charAt(0).toUpperCase() + city.slice(1);
-};
 
 interface SidebarProps {
   isOpen: boolean;
@@ -85,7 +85,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
       >
         <div className="flex flex-col h-full text-white">
           {/* Location Selection */}
-          <div className="p-4 border-b border-white/10">
+          <div className="p-3 border-b border-white/10">
             <button
               onClick={() => setIsAreasExpanded(!isAreasExpanded)}
               className="flex items-center justify-between w-full text-sm font-medium"
@@ -101,7 +101,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
             </button>
             
             {isAreasExpanded && (
-              <div className="mt-2 ml-6 space-y-1">
+              <div className="mt-2 ml-6 space-y-0.5">
                 {denseAreas.map((area) => (
                   <div
                     key={area}
@@ -120,13 +120,13 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 p-4 space-y-2">
+          <nav className="flex-1 p-3 space-y-0.5">
             {navItems.map((item) => (
               <Link
                 key={item.path}
                 to={item.path}
                 className={cn(
-                  "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+                  "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
                   location.pathname === item.path
                     ? "bg-white/20 dark:bg-white/30"
                     : "hover:bg-white/10"
@@ -139,13 +139,13 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
           </nav>
 
           {/* Alerts Filter */}
-          <div className="p-4 border-t border-white/10">
-            <div className="text-sm font-medium mb-3">Alerts type</div>
-            <div className="space-y-2">
+          <div className="p-3 border-t border-white/10">
+            <div className="text-sm font-medium mb-1">Alerts type</div>
+            <div className="space-y-0.5">
               {alertTypes.map((alert) => (
                 <div 
                   key={alert.type} 
-                  className="flex items-center gap-2 cursor-pointer hover:bg-white/10 p-2 rounded transition-colors"
+                  className="flex items-center gap-2 cursor-pointer hover:bg-white/10 px-2 py-1.5 rounded transition-colors"
                   onClick={() => handleAlertTypeClick(alert.severity)}
                 >
                   <div className={cn("h-2 w-2 rounded-full", alert.color)} />

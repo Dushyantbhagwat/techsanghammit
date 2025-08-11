@@ -1,3 +1,6 @@
+import { getCityUpdates } from './cityUpdates';
+import { searchWeb } from './webSearch';
+
 interface CityContext {
   traffic: {
     congestion: string;
@@ -21,8 +24,80 @@ interface CityContext {
   };
 }
 
-// Mock responses based on keywords in the user's question
-const getMockResponse = (message: string, city: string, context: CityContext): string => {
+interface CityUpdate {
+  type: 'NEWS' | 'EVENT' | 'ALERT';
+  title: string;
+  description: string;
+  timestamp: string;
+  source?: string;
+  url?: string;
+}
+
+// Mock web search results for development
+const mockWebSearch = async (query: string, city: string): Promise<string[]> => {
+  const results = [
+    `${city} is known for its vibrant culture and rapid development.`,
+    `Recent infrastructure projects in ${city} include smart traffic management systems.`,
+    `${city}'s local government has initiated several smart city initiatives.`,
+    `The public transportation system in ${city} is undergoing modernization.`,
+  ];
+  return results.filter(result => 
+    result.toLowerCase().includes(query.toLowerCase()) || 
+    Math.random() > 0.5
+  );
+};
+
+// Get relevant city updates
+const getRelevantUpdates = async (city: string, query: string): Promise<CityUpdate[]> => {
+  const updates = await getCityUpdates(city);
+  return updates.filter(update => 
+    update.title.toLowerCase().includes(query.toLowerCase()) ||
+    update.description.toLowerCase().includes(query.toLowerCase())
+  );
+};
+
+// Combine all information sources
+export const getCityIntelligence = async (
+  message: string,
+  city: string,
+  context: CityContext
+): Promise<string> => {
+  try {
+    // Get real-time metrics response
+    const metricsResponse = getMetricsResponse(message, city, context);
+    
+    // Get relevant city updates
+    const updates = await getRelevantUpdates(city, message);
+    
+    // Get web search results
+    const webResults = await mockWebSearch(message, city);
+
+    // Combine all information
+    let response = metricsResponse;
+
+    if (updates.length > 0) {
+      response += "\n\nRelevant City Updates:";
+      updates.slice(0, 2).forEach(update => {
+        response += `\n• ${update.title} - ${update.description}`;
+      });
+    }
+
+    if (webResults.length > 0) {
+      response += "\n\nAdditional Information:";
+      webResults.slice(0, 2).forEach(result => {
+        response += `\n• ${result}`;
+      });
+    }
+
+    return response;
+  } catch (error) {
+    console.error('Error generating city intelligence:', error);
+    throw new Error('Failed to gather city information. Please try again.');
+  }
+};
+
+// Get response based on real-time metrics
+const getMetricsResponse = (message: string, city: string, context: CityContext): string => {
   const lowercaseMessage = message.toLowerCase();
 
   if (lowercaseMessage.includes('traffic')) {
@@ -61,16 +136,5 @@ const getMockResponse = (message: string, city: string, context: CityContext): s
 - Street Lights: ${context.streetlights.working} operational`;
   }
 
-  return `I can help you with information about ${city}'s traffic conditions, parking availability, environmental metrics, and street lighting status. What specific information would you like to know?`;
+  return `I can help you with information about ${city}'s traffic conditions, parking availability, environmental metrics, street lighting status, and recent city updates. What specific information would you like to know?`;
 };
-
-export async function getChatResponse(message: string, city: string, context: CityContext) {
-  try {
-    // For now, use mock responses instead of API calls
-    const response = getMockResponse(message, city, context);
-    return response;
-  } catch (error) {
-    console.error('Error generating chat response:', error);
-    throw new Error('Failed to generate response. Please try again.');
-  }
-}

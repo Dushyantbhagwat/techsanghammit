@@ -1,223 +1,172 @@
-import { useState, useRef } from 'react';
-import { MessageSquare, Mic, X, Send, Image } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { generateResponse, generateImageResponse } from '@/services/gemini';
+import { Card } from '@/components/ui/card';
+import { Send, X, Loader2, MessageSquare } from 'lucide-react';
+import { useCity } from '@/contexts/CityContext';
+import { getCityIntelligence } from '@/services/cityIntelligence';
 
 interface Message {
   role: 'user' | 'assistant';
   content: string;
-  image?: string;
 }
 
-export function ChatAssistant() {
-  const [isOpen, setIsOpen] = useState(false);
+interface ChatAssistantProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+// Function to get real-time city data from various services
+const getCityData = async (city: string) => {
+  // In a real app, these would be actual API calls to your services
+  // For now, we'll return simulated real-time data
+  return {
+    traffic: {
+      congestion: Math.floor(Math.random() * 30 + 40) + '%', // 40-70%
+      averageSpeed: Math.floor(Math.random() * 20 + 25) + ' km/h', // 25-45 km/h
+      vehicleCount: Math.floor(Math.random() * 300 + 400).toString(), // 400-700
+    },
+    parking: {
+      available: Math.floor(Math.random() * 100 + 150).toString(), // 150-250
+      total: '500',
+      occupancy: Math.floor(Math.random() * 20 + 40) + '%', // 40-60%
+    },
+    environment: {
+      aqi: Math.floor(Math.random() * 50 + 100).toString(), // 100-150
+      temperature: Math.floor(Math.random() * 5 + 25) + '°C', // 25-30°C
+      humidity: Math.floor(Math.random() * 20 + 50) + '%', // 50-70%
+    },
+    streetlights: {
+      working: Math.floor(Math.random() * 5 + 95) + '%', // 95-100%
+      faults: Math.floor(Math.random() * 10 + 5).toString(), // 5-15
+      energy: Math.floor(Math.random() * 100 + 400) + ' kWh', // 400-500 kWh
+    },
+  };
+};
+
+export function ChatAssistant({ isOpen, onClose }: ChatAssistantProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
-  const [isListening, setIsListening] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const { selectedCity } = useCity();
 
-  const handleSend = async () => {
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  useEffect(() => {
+    // Add welcome message when chat is opened
+    if (isOpen && messages.length === 0) {
+      setMessages([
+        {
+          role: 'assistant',
+          content: `Hello! I'm your city assistant for ${selectedCity}. I can help you with:
+• Real-time traffic and parking information
+• Environmental conditions and air quality
+• Street lighting status
+• Latest city updates and events
+• General information about ${selectedCity}
+
+What would you like to know?`
+        }
+      ]);
+    }
+  }, [isOpen, selectedCity]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     if (!input.trim() || isLoading) return;
 
-    const userMessage: Message = { role: 'user', content: input };
-    const newMessages = [...messages, userMessage];
-    setMessages(newMessages);
+    const userMessage = input.trim();
     setInput('');
+    setMessages(prev => [...prev, { role: 'user', content: userMessage }]);
     setIsLoading(true);
 
     try {
-      const response = await generateResponse(input);
-      const assistantMessage: Message = {
-        role: 'assistant',
-        content: response
-      };
-      setMessages([...newMessages, assistantMessage]);
+      const cityData = await getCityData(selectedCity);
+      const response = await getCityIntelligence(userMessage, selectedCity, cityData);
+      
+      setMessages(prev => [...prev, { role: 'assistant', content: response }]);
     } catch (error) {
-      console.error('Error calling Gemini API:', error);
+      console.error('Chat error:', error);
+      setMessages(prev => [...prev, { 
+        role: 'assistant', 
+        content: "I encountered an error while processing your request. Please try asking your question again." 
+      }]);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleVoice = () => {
-    if ('webkitSpeechRecognition' in window) {
-      const recognition = new (window as any).webkitSpeechRecognition();
-      recognition.continuous = false;
-      recognition.interimResults = false;
-
-      recognition.onstart = () => {
-        setIsListening(true);
-      };
-
-      recognition.onend = () => {
-        setIsListening(false);
-      };
-
-      recognition.onresult = (event: any) => {
-        const transcript = event.results[0][0].transcript;
-        setInput(transcript);
-      };
-
-      if (isListening) {
-        recognition.stop();
-      } else {
-        recognition.start();
-      }
-    } else {
-      alert('Speech recognition is not supported in this browser.');
-    }
-  };
-
-  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    try {
-      setIsLoading(true);
-      const reader = new FileReader();
-      reader.onloadend = async () => {
-        const base64String = (reader.result as string).split(',')[1];
-        const userMessage: Message = {
-          role: 'user',
-          content: 'Analyzing image...',
-          image: reader.result as string
-        };
-        const newMessages = [...messages, userMessage];
-        setMessages(newMessages);
-
-        const response = await generateImageResponse('Analyze this image and describe what you see.', base64String);
-        const assistantMessage: Message = {
-          role: 'assistant',
-          content: response
-        };
-        setMessages([...newMessages, assistantMessage]);
-        setIsLoading(false);
-      };
-      reader.readAsDataURL(file);
-    } catch (error) {
-      console.error('Error processing image:', error);
-      setIsLoading(false);
-    }
-  };
-
-  if (!isOpen) {
-    return (
-      <Button
-        onClick={() => setIsOpen(true)}
-        className="w-12 h-12 rounded-full bg-[#6C4DFF] hover:bg-[#5B3FE8] shadow-lg flex items-center justify-center"
-      >
-        <MessageSquare className="h-6 w-6 text-white" />
-      </Button>
-    );
-  }
+  if (!isOpen) return null;
 
   return (
-    <div className="absolute top-[calc(100%+1rem)] right-4 w-[450px] h-[500px] rounded-2xl overflow-hidden backdrop-blur-xl bg-black/20 border border-white/10 shadow-2xl flex flex-col">
-      {/* Header */}
-      <div className="p-3 border-b border-white/10 flex items-center justify-between bg-[#6C4DFF]/10">
-        <div className="flex items-center gap-2">
-          <MessageSquare className="h-5 w-5 text-[#6C4DFF]" />
-          <span className="font-medium text-white">Nells AI Assistant</span>
-        </div>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => setIsOpen(false)}
-          className="hover:bg-white/10"
-        >
-          <X className="h-4 w-4 text-white" />
-        </Button>
-      </div>
-
-      {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-3 space-y-3">
-        {messages.length === 0 && (
-          <div className="text-center text-white/50 mt-4">
-            Hi! I'm Nells, your AI assistant. How can I help you today?
+    <div className="fixed bottom-4 right-4 w-[450px] z-50">
+      <Card className="flex flex-col h-[600px] shadow-xl">
+        {/* Header */}
+        <div className="flex items-center justify-between p-4 border-b bg-primary/5">
+          <div className="flex items-center gap-2">
+            <MessageSquare className="w-5 h-5 text-primary" />
+            <h3 className="font-semibold">City Assistant - {selectedCity}</h3>
           </div>
-        )}
-        {messages.map((message, index) => (
-          <div
-            key={index}
-            className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
-          >
+          <Button variant="ghost" size="icon" onClick={onClose}>
+            <X className="w-4 h-4" />
+          </Button>
+        </div>
+
+        {/* Messages */}
+        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+          {messages.map((message, index) => (
             <div
-              className={`max-w-[80%] rounded-lg p-2.5 ${
-                message.role === 'user'
-                  ? 'bg-[#6C4DFF] text-white'
-                  : 'bg-white/10 text-white'
+              key={index}
+              className={`flex ${
+                message.role === 'user' ? 'justify-end' : 'justify-start'
               }`}
             >
-              {message.image && (
-                <img
-                  src={message.image}
-                  alt="Uploaded content"
-                  className="max-w-full h-auto rounded-lg mb-2"
-                />
-              )}
-              {message.content}
+              <div
+                className={`max-w-[80%] rounded-lg px-4 py-2 ${
+                  message.role === 'user'
+                    ? 'bg-primary text-primary-foreground'
+                    : 'bg-muted'
+                }`}
+              >
+                {message.content}
+              </div>
             </div>
-          </div>
-        ))}
-        {isLoading && (
-          <div className="flex justify-start">
-            <div className="bg-white/10 text-white rounded-lg p-2.5">
-              Thinking...
+          ))}
+          {isLoading && (
+            <div className="flex justify-start">
+              <div className="bg-muted rounded-lg px-4 py-2">
+                <div className="flex items-center gap-2">
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>Gathering information...</span>
+                </div>
+              </div>
             </div>
-          </div>
-        )}
-      </div>
+          )}
+          <div ref={messagesEndRef} />
+        </div>
 
-      {/* Input Area */}
-      <div className="p-3 border-t border-white/10 bg-[#6C4DFF]/5">
-        <div className="flex items-center gap-2">
-          <div className="flex-1 min-w-0">
+        {/* Input */}
+        <form onSubmit={handleSubmit} className="p-4 border-t bg-primary/5">
+          <div className="flex gap-2">
             <input
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Ask Nells anything..."
-              className="w-full bg-white/10 border border-white/10 rounded-lg px-3 py-2 text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-[#6C4DFF]"
-              onKeyPress={(e) => e.key === 'Enter' && handleSend()}
+              placeholder="Ask about your city..."
+              className="flex-1 px-3 py-2 rounded-md border bg-white text-black placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-primary"
             />
-          </div>
-          <div className="flex shrink-0 gap-1">
-            <input
-              type="file"
-              ref={fileInputRef}
-              className="hidden"
-              accept="image/*"
-              onChange={handleFileUpload}
-            />
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => fileInputRef.current?.click()}
-              className="hover:bg-white/10 w-9 h-9 shrink-0"
-              disabled={isLoading}
-            >
-              <Image className="h-4 w-4 text-white" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleVoice}
-              className={`hover:bg-white/10 w-9 h-9 shrink-0 ${isListening ? 'text-red-500' : 'text-white'}`}
-              disabled={isLoading}
-            >
-              <Mic className="h-4 w-4" />
-            </Button>
-            <Button
-              onClick={handleSend}
-              className="bg-[#6C4DFF] hover:bg-[#5B3FE8] text-white w-9 h-9 shrink-0"
-              disabled={isLoading}
-            >
-              <Send className="h-4 w-4" />
+            <Button type="submit" disabled={isLoading}>
+              <Send className="w-4 h-4" />
             </Button>
           </div>
-        </div>
-      </div>
+        </form>
+      </Card>
     </div>
   );
 }
