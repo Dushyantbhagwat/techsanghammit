@@ -64,7 +64,15 @@ export function Header({ onSidebarToggle, isSidebarCollapsed, onToggleSidebar }:
 
   return (
     <>
-      <header className="fixed top-0 left-0 right-0 h-16 bg-background border-b z-50 flex items-center px-2 sm:px-4 transition-colors duration-200">
+      <header 
+        className={`fixed top-0 h-16 bg-background/95 backdrop-blur-sm border-b z-50 flex items-center transition-all duration-300 ${
+          isSidebarCollapsed ? 'left-[72px] right-0' : 'left-[280px] right-0'
+        }`}
+        style={{
+          transition: 'left 225ms cubic-bezier(0.4, 0, 0.6, 1) 0ms',
+          width: isSidebarCollapsed ? 'calc(100% - 72px)' : 'calc(100% - 280px)',
+        }}
+      >
         {/* Menu Toggle for Mobile */}
         <Button
           variant="ghost"
@@ -75,29 +83,27 @@ export function Header({ onSidebarToggle, isSidebarCollapsed, onToggleSidebar }:
           <Menu className="h-5 w-5" />
         </Button>
 
-        {/* Logo */}
-        <div className="flex items-center gap-1 sm:gap-2 w-auto sm:w-64 h-full pr-2 sm:pr-4">
-          <span className="font-semibold text-foreground hidden sm:inline">Urban</span>
-          <div className="w-8 h-8 bg-[#6C5DD3] rounded-lg flex items-center justify-center">
-            <span className="text-white font-semibold">X</span>
-          </div>
-        </div>
+        {/* Collapse Button - Desktop Only */}
+        <button
+          onClick={onToggleSidebar}
+          className="hidden md:flex items-center justify-center w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors ml-4 mr-2"
+          aria-label={isSidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+        >
+          {isSidebarCollapsed ? (
+            <ChevronRight className="h-4 w-4 text-gray-700 dark:text-gray-300" />
+          ) : (
+            <ChevronLeft className="h-4 w-4 text-gray-700 dark:text-gray-300" />
+          )}
+        </button>
 
-        {/* Search and Collapse Button */}
-        <div className="flex-1 flex items-center px-2 sm:px-4">
-          <div className="flex items-center gap-2 w-full max-w-2xl">
-            {/* Collapse Button - Desktop Only */}
-            <button
-              onClick={onToggleSidebar}
-              className="hidden md:flex items-center justify-center w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
-              aria-label={isSidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-            >
-              {isSidebarCollapsed ? (
-                <ChevronRight className="h-4 w-4 text-gray-700 dark:text-gray-300" />
-              ) : (
-                <ChevronLeft className="h-4 w-4 text-gray-700 dark:text-gray-300" />
-              )}
-            </button>
+        {/* Search and Logo */}
+        <div className="flex-1 flex items-center px-6 gap-6">
+          {/* Urban X Logo */}
+          <div className="flex items-center gap-1">
+            <span className="text-xl font-bold bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">Urban X</span>
+          </div>
+          
+          <div className="flex-1 flex items-center gap-2 max-w-2xl">
             
             {/* Search */}
             <div className="flex-1 relative">

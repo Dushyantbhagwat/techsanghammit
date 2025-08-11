@@ -24,24 +24,34 @@ export function Layout({ children }: LayoutProps) {
 
   return (
     <div className={`h-screen flex flex-col bg-background text-foreground transition-colors duration-200 ${isDarkMode ? 'dark' : ''}`}>
-      <Header 
-        onSidebarToggle={handleMobileSidebarToggle} 
-        isSidebarCollapsed={isSidebarCollapsed}
-        onToggleSidebar={handleToggleSidebar}
-      />
-      <div className="flex flex-1 relative">
+      <div className="flex flex-1 overflow-hidden">
         <EnhancedSidebar 
           isOpen={isSidebarOpen} 
-          onToggle={handleMobileSidebarToggle} 
+          onToggle={handleToggleSidebar} 
           selectedCity={selectedCity}
           onCitySelect={setSelectedCity}
           isCollapsed={isSidebarCollapsed}
         />
-        <main className={`flex-1 pt-20 transition-all duration-300 ${
-          isSidebarCollapsed ? 'md:pl-20' : 'md:pl-64'
-        }`}>
-          {children}
-        </main>
+        <div className="flex-1 flex flex-col">
+          <Header 
+            onSidebarToggle={handleMobileSidebarToggle} 
+            isSidebarCollapsed={isSidebarCollapsed}
+            onToggleSidebar={handleToggleSidebar}
+          />
+          <main 
+            className={`flex-1 transition-all duration-300 ease-in-out overflow-y-auto`}
+            style={{
+              marginLeft: isSidebarCollapsed ? '72px' : '280px',
+              transition: 'margin-left 225ms cubic-bezier(0.4, 0, 0.6, 1) 0ms',
+              paddingTop: '64px', // Height of the header
+              height: '100vh',
+            }}
+          >
+            <div className="w-full max-w-full min-h-[calc(100vh-64px)] px-4 md:px-6 py-4">
+              {children}
+            </div>
+          </main>
+        </div>
       </div>
     </div>
   );

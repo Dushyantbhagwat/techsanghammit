@@ -41,19 +41,27 @@ const StyledDrawer = styled(Drawer, {
 })<{ collapsed?: boolean }>(({ theme, collapsed }: { theme: Theme, collapsed?: boolean }) => ({
   width: collapsed ? COLLAPSED_WIDTH : DRAWER_WIDTH,
   flexShrink: 0,
+  position: 'fixed',
+  height: '100vh',
+  zIndex: 1200,
   '& .MuiDrawer-paper': {
     width: collapsed ? COLLAPSED_WIDTH : DRAWER_WIDTH,
     boxSizing: 'border-box',
     background: 'linear-gradient(180deg, #6C5DD3 0%, #4A3E99 50%, #3D2F7F 100%)',
     borderRight: '1px solid rgba(255, 255, 255, 0.1)',
-    transition: theme.transitions.create(['width', 'transform'], {
+    transition: theme.transitions.create('width', {
       easing: theme.transitions.easing.sharp,
       duration: theme.transitions.duration.enteringScreen,
     }),
     overflowX: 'hidden',
+    overflowY: 'auto',
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
+    height: '100vh',
+    position: 'fixed',
+    left: 0,
+    top: 0,
   },
 }));
 
@@ -179,12 +187,17 @@ export function EnhancedSidebar({ isOpen, onToggle, selectedCity, onCitySelect, 
     }
   };
 
-  const drawerVariant = isMobile ? 'temporary' : 'permanent';
+  const drawerVariant = isMobile ? 'temporary' : 'persistent';
   const shouldShowBackdrop = isMobile && isOpen;
 
   return (
     <>
-      {shouldShowBackdrop && <MobileBackdrop onClick={handleMobileClose} />}
+      {shouldShowBackdrop && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 z-10"
+          onClick={handleMobileClose}
+        />
+      )}
       
       <StyledDrawer
         variant={drawerVariant}
@@ -192,12 +205,12 @@ export function EnhancedSidebar({ isOpen, onToggle, selectedCity, onCitySelect, 
         open={isMobile ? isOpen : true}
         onClose={handleMobileClose}
         collapsed={isCollapsed}
+        className={!isMobile ? '!block' : ''}
         ModalProps={{
           keepMounted: true, // Better mobile performance
         }}
       >
         <SidebarContent>
-          {/* Removed the collapse button from here as it's now in the header */}
 
           {/* Header */}
           <SidebarHeader isCollapsed={isCollapsed} />

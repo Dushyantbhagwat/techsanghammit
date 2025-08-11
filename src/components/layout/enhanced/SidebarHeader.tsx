@@ -40,19 +40,5 @@ interface SidebarHeaderProps {
 }
 
 export function SidebarHeader({ isCollapsed = false }: SidebarHeaderProps) {
-  return (
-    <HeaderContainer>
-      <LogoContainer>
-        <LogoAvatar>
-          UX
-        </LogoAvatar>
-        {!isCollapsed && (
-          <Box>
-            <BrandText>UrbanX</BrandText>
-            <SubtitleText>Smart City Hub</SubtitleText>
-          </Box>
-        )}
-      </LogoContainer>
-    </HeaderContainer>
-  );
+  return null;
 }
