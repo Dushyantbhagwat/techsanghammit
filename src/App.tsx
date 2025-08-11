@@ -13,6 +13,7 @@ import { CityProvider } from "./contexts/CityContext";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 import { MapView } from "./components/analytics/MapView";
 import { auth } from './lib/firebase';
+import CameraMonitoringPage from "./pages/CameraMonitoringPage";
 
 function App() {
   const [isFirebaseInitialized, setIsFirebaseInitialized] = useState(false);
@@ -24,7 +25,7 @@ function App() {
         setIsFirebaseInitialized(true);
         console.log('Firebase Auth initialized successfully');
       },
-      (error) => {
+      (error: Error) => {
         console.error('Firebase Auth initialization error:', error);
         setError(error.message);
       }
@@ -90,6 +91,16 @@ function App() {
                 <ProtectedRoute>
                   <Layout>
                     <MapView />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/cameras"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <CameraMonitoringPage />
                   </Layout>
                 </ProtectedRoute>
               }

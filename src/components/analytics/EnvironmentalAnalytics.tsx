@@ -4,6 +4,7 @@ import { ResponsiveLine } from "@nivo/line";
 import { ResponsiveBar } from "@nivo/bar";
 import { fetchEnvironmentalData, type EnvironmentalData, getAqiCategory } from "@/services/aqi";
 import { useCity } from "@/contexts/CityContext";
+import { ArrowUpIcon, ArrowDownIcon, ArrowRightIcon } from "@heroicons/react/24/solid";
 
 type TimeRange = 'daily' | 'weekly' | 'monthly' | 'yearly';
 
@@ -14,53 +15,41 @@ const timeRangeDescriptions = {
   yearly: "5-year historical data showing long-term air quality improvements"
 };
 
-const defaultEnvData: EnvironmentalData = {
-  current: {
-    aqi: {
-      value: 58,
-      category: "Moderate"
+const chartTheme = {
+  textColor: "#ffffff",
+  axis: {
+    domain: {
+      line: {
+        stroke: "#ffffff"
+      }
     },
-    temperature: 20,
-    humidity: 45,
-    co2: 65,
-    timestamp: new Date().toISOString()
+    ticks: {
+      line: {
+        stroke: "#ffffff"
+      },
+      text: {
+        fill: "#ffffff"
+      }
+    },
+    legend: {
+      text: {
+        fill: "#ffffff",
+        fontSize: 12,
+        fontWeight: 600
+      }
+    }
   },
-  hourly: Array.from({ length: 9 }, (_, i) => ({
-    hour: `${(i + 1).toString().padStart(2, '0')}:00`,
-    aqi: {
-      value: 50 + Math.floor(Math.random() * 20),
-      category: "Moderate"
-    },
-    temperature: 20 + Math.floor(Math.random() * 5),
-    humidity: 40 + Math.floor(Math.random() * 10),
-    co2: 60 + Math.floor(Math.random() * 15)
-  })),
-  locationAverages: [
-    { location: "thane", averageAqi: 55 },
-    { location: "kalyan", averageAqi: 60 },
-    { location: "andheri", averageAqi: 65 },
-    { location: "borivali", averageAqi: 58 },
-    { location: "virar", averageAqi: 52 },
-    { location: "dadar", averageAqi: 63 },
-    { location: "khargar", averageAqi: 57 }
-  ],
-  timeRangeAverages: {
-    daily: Array.from({ length: 24 }, (_, i) => ({
-      hour: `${i.toString().padStart(2, '0')}:00`,
-      averageAqi: 50 + Math.floor(Math.random() * 20)
-    })),
-    weekly: Array.from({ length: 4 }, (_, i) => ({
-      week: `Week ${i + 1}`,
-      averageAqi: 50 + Math.floor(Math.random() * 20)
-    })),
-    monthly: Array.from({ length: 12 }, (_, i) => ({
-      month: new Date(2024, i, 1).toLocaleString('default', { month: 'short' }),
-      averageAqi: 50 + Math.floor(Math.random() * 20)
-    })),
-    yearly: Array.from({ length: 5 }, (_, i) => ({
-      year: (2020 + i).toString(),
-      averageAqi: 50 + Math.floor(Math.random() * 20)
-    }))
+  grid: {
+    line: {
+      stroke: "#ffffff",
+      strokeOpacity: 0.1
+    }
+  },
+  legends: {
+    text: {
+      fill: "#ffffff",
+      fontSize: 12
+    }
   }
 };
 
@@ -73,8 +62,25 @@ const getAqiColor = (value: number) => {
   return '#7A0000';
 };
 
+const TrendIndicator = ({ trend }: { trend: 'improving' | 'stable' | 'worsening' }) => {
+  const config = {
+    improving: { icon: ArrowDownIcon, color: 'text-green-500', text: 'Improving' },
+    stable: { icon: ArrowRightIcon, color: 'text-blue-500', text: 'Stable' },
+    worsening: { icon: ArrowUpIcon, color: 'text-red-500', text: 'Worsening' }
+  }[trend];
+
+  const Icon = config.icon;
+
+  return (
+    <div className={`flex items-center gap-1 ${config.color}`}>
+      <Icon className="h-4 w-4" />
+      <span>{config.text}</span>
+    </div>
+  );
+};
+
 export function EnvironmentalAnalytics() {
-  const [envData, setEnvData] = useState<EnvironmentalData>(defaultEnvData);
+  const [envData, setEnvData] = useState<EnvironmentalData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedTimeRange, setSelectedTimeRange] = useState<TimeRange>('daily');
@@ -96,9 +102,39 @@ export function EnvironmentalAnalytics() {
     };
 
     fetchData();
-    const interval = setInterval(fetchData, 5 * 60 * 1000);
+    const interval = setInterval(fetchData, 5 * 60 * 1000); // Update every 5 minutes
     return () => clearInterval(interval);
   }, [selectedCity]);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-96">
+        <div className="text-lg animate-pulse">Loading environmental data...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-6 bg-red-500/10 rounded-lg">
+        <p className="text-red-500">Error: {error}</p>
+        <button
+          onClick={() => window.location.reload()}
+          className="mt-4 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
+
+  if (!envData) {
+    return (
+      <div className="p-6 bg-yellow-500/10 rounded-lg">
+        <p className="text-yellow-500">No environmental data available</p>
+      </div>
+    );
+  }
 
   const getTimeRangeData = () => {
     switch (selectedTimeRange) {
@@ -132,50 +168,23 @@ export function EnvironmentalAnalytics() {
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <h3 className="text-lg font-semibold">Air Quality Index Trends</h3>
             <div className="flex gap-2">
-              <button
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  selectedTimeRange === 'daily'
-                    ? 'bg-blue-500 text-white'
-                    : 'bg-gray-100 hover:bg-gray-200'
-                }`}
-                onClick={() => setSelectedTimeRange('daily')}
-              >
-                Daily
-              </button>
-              <button
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  selectedTimeRange === 'weekly'
-                    ? 'bg-blue-500 text-white'
-                    : 'bg-gray-100 hover:bg-gray-200'
-                }`}
-                onClick={() => setSelectedTimeRange('weekly')}
-              >
-                Weekly
-              </button>
-              <button
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  selectedTimeRange === 'monthly'
-                    ? 'bg-blue-500 text-white'
-                    : 'bg-gray-100 hover:bg-gray-200'
-                }`}
-                onClick={() => setSelectedTimeRange('monthly')}
-              >
-                Monthly
-              </button>
-              <button
-                className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  selectedTimeRange === 'yearly'
-                    ? 'bg-blue-500 text-white'
-                    : 'bg-gray-100 hover:bg-gray-200'
-                }`}
-                onClick={() => setSelectedTimeRange('yearly')}
-              >
-                Yearly
-              </button>
+              {(['daily', 'weekly', 'monthly', 'yearly'] as TimeRange[]).map(range => (
+                <button
+                  key={range}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    selectedTimeRange === range
+                      ? 'bg-blue-500 text-white'
+                      : 'bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700'
+                  }`}
+                  onClick={() => setSelectedTimeRange(range)}
+                >
+                  {range.charAt(0).toUpperCase() + range.slice(1)}
+                </button>
+              ))}
             </div>
           </div>
           
-          <div className="text-sm text-gray-600 bg-blue-50 p-4 rounded-lg">
+          <div className="text-sm text-gray-600 dark:text-gray-400 bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
             {timeRangeDescriptions[selectedTimeRange]}
           </div>
 
@@ -186,24 +195,32 @@ export function EnvironmentalAnalytics() {
               indexBy="period"
               margin={{ top: 20, right: 20, bottom: 50, left: 60 }}
               padding={0.3}
-              colors={({ data }: { data: { value: number } }) => getAqiColor(data.value)}
+              colors={({ data }) => getAqiColor(data.value)}
               borderRadius={4}
+              enableGridX={false}
+              enableGridY={false}
+              theme={chartTheme}
               axisBottom={{
                 tickSize: 5,
                 tickPadding: 5,
                 tickRotation: selectedTimeRange === 'daily' ? -45 : -45,
-                tickValues: selectedTimeRange === 'daily' ? 12 : undefined // Show every other hour for daily view
+                tickValues: selectedTimeRange === 'daily' ? 12 : undefined,
+                legend: selectedTimeRange === 'daily' ? 'Hours' :
+                       selectedTimeRange === 'weekly' ? 'Weeks' :
+                       selectedTimeRange === 'monthly' ? 'Months' : 'Years',
+                legendPosition: 'middle',
+                legendOffset: 40
               }}
               axisLeft={{
                 tickSize: 5,
                 tickPadding: 5,
                 tickRotation: 0,
-                legend: 'AQI',
+                legend: 'Air Quality Index (AQI)',
                 legendPosition: 'middle',
-                legendOffset: -40
+                legendOffset: -50
               }}
               tooltip={({ value, indexValue, color }) => (
-                <div className="bg-white p-2 border rounded shadow-lg">
+                <div className="bg-gray-800 text-white p-2 border border-gray-700 rounded shadow-lg">
                   <strong>{indexValue}</strong>
                   <br />
                   <span style={{ color }}>AQI: {value}</span>
@@ -215,7 +232,6 @@ export function EnvironmentalAnalytics() {
       </Card>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        {/* Current AQI with Prediction */}
         <Card className="p-6 relative">
           <h3 className="text-lg font-semibold mb-2">Current AQI</h3>
           <div className="text-3xl font-bold">{envData.current.aqi.value}</div>
@@ -224,14 +240,20 @@ export function EnvironmentalAnalytics() {
               {envData.current.aqi.category}
             </div>
             {envData.current.aqi.prediction && (
-              <div className="flex items-center gap-2 text-sm">
-                <span>Predicted:</span>
-                <span style={{ color: getAqiColor(envData.current.aqi.prediction.predictedAQI) }}>
-                  {envData.current.aqi.prediction.predictedAQI} AQI
-                </span>
-                <span className="text-gray-500">
-                  ({Math.round(envData.current.aqi.prediction.confidence * 100)}% confidence)
-                </span>
+              <div className="space-y-1">
+                <div className="flex items-center gap-2 text-sm">
+                  <span>Predicted:</span>
+                  <span style={{ color: getAqiColor(envData.current.aqi.prediction.predictedAQI) }}>
+                    {envData.current.aqi.prediction.predictedAQI} AQI
+                  </span>
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <span>Confidence:</span>
+                  <span className="text-blue-500">
+                    {Math.round(envData.current.aqi.prediction.confidence * 100)}%
+                  </span>
+                </div>
+                <TrendIndicator trend={envData.current.aqi.prediction.trend} />
               </div>
             )}
           </div>
@@ -247,7 +269,7 @@ export function EnvironmentalAnalytics() {
           <div className="mt-4 text-sm text-gray-500">Updated now</div>
         </Card>
 
-        <Card className="p-6">
+        <Card className="p-4">
           <h3 className="text-lg font-semibold mb-2">Humidity</h3>
           <div className="text-3xl font-bold">{envData.current.humidity.toFixed(2)}%</div>
           <div className="mt-2 text-green-500">Optimal</div>
@@ -264,7 +286,7 @@ export function EnvironmentalAnalytics() {
 
       <Card className="p-6">
         <h3 className="text-lg font-semibold mb-4">Location-wise AQI Comparison</h3>
-        <div className="h-[400px]">
+        <div className="h-[380px]">
           <ResponsiveBar
             data={envData.locationAverages.map(loc => ({
               location: loc.location.charAt(0).toUpperCase() + loc.location.slice(1),
@@ -272,25 +294,31 @@ export function EnvironmentalAnalytics() {
             }))}
             keys={['value']}
             indexBy="location"
-            margin={{ top: 20, right: 20, bottom: 50, left: 60 }}
+            margin={{ top: 25, right: 20, bottom: 55, left: 60 }}
             padding={0.3}
-            colors={({ data }: { data: { value: number } }) => getAqiColor(data.value)}
+            colors={({ data }) => getAqiColor(data.value)}
             borderRadius={4}
+            enableGridX={false}
+            enableGridY={false}
+            theme={chartTheme}
             axisBottom={{
               tickSize: 5,
               tickPadding: 5,
-              tickRotation: -45
+              tickRotation: -45,
+              legend: 'Location',
+              legendPosition: 'middle',
+              legendOffset: 45
             }}
             axisLeft={{
               tickSize: 5,
               tickPadding: 5,
               tickRotation: 0,
-              legend: 'AQI',
+              legend: 'Air Quality Index (AQI)',
               legendPosition: 'middle',
-              legendOffset: -40
+              legendOffset: -50
             }}
             tooltip={({ value, indexValue, color }) => (
-              <div className="bg-white p-2 border rounded shadow-lg">
+              <div className="bg-gray-800 text-white p-2 border border-gray-700 rounded shadow-lg">
                 <strong>{indexValue}</strong>
                 <br />
                 <span style={{ color }}>AQI: {value}</span>
@@ -311,33 +339,35 @@ export function EnvironmentalAnalytics() {
                   data: envData.hourly.map(h => ({
                     x: h.hour,
                     y: h.temperature
-                  })),
-                  color: "#FF4560"
+                  }))
                 },
                 {
                   id: "humidity",
                   data: envData.hourly.map(h => ({
                     x: h.hour,
                     y: h.humidity
-                  })),
-                  color: "#00E396"
+                  }))
                 }
               ]}
-              margin={{ top: 20, right: 20, bottom: 50, left: 60 }}
+              margin={{ top: 50, right: 20, bottom: 50, left: 60 }}
               xScale={{ type: "point" }}
               yScale={{ type: "linear", min: "auto", max: "auto" }}
+              theme={chartTheme}
               axisBottom={{
                 tickSize: 5,
                 tickPadding: 5,
-                tickRotation: -45
+                tickRotation: -45,
+                legend: "Time (Hours)",
+                legendPosition: "middle",
+                legendOffset: 40
               }}
               axisLeft={{
                 tickSize: 5,
                 tickPadding: 5,
                 tickRotation: 0,
-                legend: "Value",
-                legendOffset: -40,
-                legendPosition: "middle"
+                legend: "Temperature (°C) / Humidity (%)",
+                legendPosition: "middle",
+                legendOffset: -50
               }}
               pointSize={8}
               pointColor="#ffffff"
@@ -345,16 +375,19 @@ export function EnvironmentalAnalytics() {
               pointBorderColor={{ from: "serieColor" }}
               enableArea={false}
               enableGridX={false}
+              enableGridY={false}
+              colors={['#FF4560', '#00E396']}
               legends={[
                 {
-                  anchor: "bottom",
+                  anchor: "top",
                   direction: "row",
                   justify: false,
-                  translateY: 40,
+                  translateY: -40,
                   itemWidth: 100,
                   itemHeight: 20,
                   symbolSize: 10,
-                  symbolShape: "circle"
+                  symbolShape: "circle",
+                  itemTextColor: "#ffffff"
                 }
               ]}
             />
@@ -377,19 +410,23 @@ export function EnvironmentalAnalytics() {
               margin={{ top: 20, right: 20, bottom: 50, left: 60 }}
               xScale={{ type: "point" }}
               yScale={{ type: "linear", min: "auto", max: "auto" }}
+              theme={chartTheme}
               curve="cardinal"
               axisBottom={{
                 tickSize: 5,
                 tickPadding: 5,
-                tickRotation: -45
+                tickRotation: -45,
+                legend: "Time (Hours)",
+                legendPosition: "middle",
+                legendOffset: 40
               }}
               axisLeft={{
                 tickSize: 5,
                 tickPadding: 5,
                 tickRotation: 0,
-                legend: "PPM",
-                legendOffset: -40,
-                legendPosition: "middle"
+                legend: "CO₂ Level (PPM)",
+                legendPosition: "middle",
+                legendOffset: -50
               }}
               enablePoints={true}
               pointSize={8}
@@ -400,6 +437,7 @@ export function EnvironmentalAnalytics() {
               areaOpacity={0.1}
               colors={["#6C5DD3"]}
               enableGridX={false}
+              enableGridY={false}
             />
           </div>
         </Card>
@@ -413,7 +451,11 @@ export function EnvironmentalAnalytics() {
             <div className="space-y-2">
               <div className="flex justify-between items-center">
                 <span>Primary Pollutant</span>
-                <span className="font-medium">PM2.5</span>
+                <span className="font-medium">
+                  {envData.current.aqi.pollutants.pm25 ? 'PM2.5' : 
+                   envData.current.aqi.pollutants.no2 ? 'NO2' : 
+                   envData.current.aqi.pollutants.so2 ? 'SO2' : 'O3'}
+                </span>
               </div>
               <div className="flex justify-between items-center">
                 <span>Daily Average</span>
@@ -421,7 +463,11 @@ export function EnvironmentalAnalytics() {
               </div>
               <div className="flex justify-between items-center">
                 <span>Peak Hours</span>
-                <span className="font-medium">5:00 AM - 7:00 AM</span>
+                <span className="font-medium">
+                  {envData.timeRangeAverages.daily.reduce((max, current) => 
+                    current.averageAqi > max.averageAqi ? current : max
+                  ).hour}
+                </span>
               </div>
             </div>
           </div>
@@ -437,12 +483,6 @@ export function EnvironmentalAnalytics() {
           </div>
         </div>
       </Card>
-
-      {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
-          Error: {error}
-        </div>
-      )}
     </div>
   );
 }

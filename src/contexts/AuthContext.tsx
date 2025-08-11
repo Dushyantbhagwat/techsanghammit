@@ -1,61 +1,41 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
+import { User } from '../types/user';
+import { auth } from '../lib/firebase';
+import { onAuthStateChanged } from 'firebase/auth';
 import { authService } from '../services/auth';
 
-interface UserResponse {
-  id: string;
-  email: string;
-  displayName?: string;
-  userName?: string;
-  preferences: {
-    notifications: boolean;
-  };
-  createdAt: Date;
-}
-
 interface AuthContextType {
-  user: UserResponse | null;
-  token: string | null;
+  user: User | null;
   loading: boolean;
   error: string | null;
   signup: (email: string, password: string) => Promise<void>;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
-  updateUser: (updates: Partial<Omit<UserResponse, 'id' | 'email' | 'createdAt'>>) => Promise<void>;
+  updateUser: (updates: Partial<Omit<User, 'id' | 'email' | 'createdAt'>>) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<UserResponse | null>(null);
-  const [token, setToken] = useState<string | null>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    // Set initial auth state
     const initAuth = async () => {
-      const storedToken = localStorage.getItem('authToken');
-      if (storedToken) {
-        try {
-          const isValid = authService.verifyToken(storedToken);
-          if (isValid) {
-            const userData = await authService.getCurrentUser(storedToken);
-            if (userData) {
-              setUser(userData);
-              setToken(storedToken);
-            } else {
-              localStorage.removeItem('authToken');
-            }
-          } else {
-            localStorage.removeItem('authToken');
-          }
-        } catch (err) {
-          console.error('Auth initialization error:', err);
-          localStorage.removeItem('authToken');
-        }
+      setLoading(true);
+      try {
+        const userData = await authService.getCurrentUser();
+        setUser(userData);
+      } catch (err) {
+        console.error('Auth initialization error:', err);
+        setError(err instanceof Error ? err.message : 'Authentication error');
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
-
+    
     initAuth();
   }, []);
 
@@ -63,8 +43,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       setLoading(true);
       setError(null);
-      // Don't set user and token after signup - user needs to login explicitly
-      await authService.signup(email, password);
+      await authService.signup({ email, password });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create account');
       throw err;
@@ -77,10 +56,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       setLoading(true);
       setError(null);
-      const { user: userData, token: newToken } = await authService.login(email, password);
+      const userData = await authService.login({ email, password });
       setUser(userData);
-      setToken(newToken);
-      localStorage.setItem('authToken', newToken);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Invalid email or password');
       throw err;
@@ -93,9 +70,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       setLoading(true);
       setError(null);
-      localStorage.removeItem('authToken');
+      await authService.signOut();
       setUser(null);
-      setToken(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to logout');
       throw err;
@@ -104,8 +80,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const updateUser = async (updates: Partial<Omit<UserResponse, 'id' | 'email' | 'createdAt'>>) => {
-    if (!user || !token) throw new Error('No user logged in');
+  const updateUser = async (updates: Partial<Omit<User, 'id' | 'email' | 'createdAt'>>) => {
+    if (!user) throw new Error('No user logged in');
     try {
       setLoading(true);
       setError(null);
@@ -121,7 +97,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const value = {
     user,
-    token,
     loading,
     error,
     signup,

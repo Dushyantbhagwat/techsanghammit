@@ -107,6 +107,46 @@ export function TrafficAnalytics() {
     return <div>No traffic data available</div>;
   }
 
+  const chartTheme = {
+    textColor: "#ffffff",
+    axis: {
+      domain: {
+        line: {
+          stroke: "#ffffff"
+        }
+      },
+      ticks: {
+        line: {
+          stroke: "#ffffff"
+        },
+        text: {
+          fill: "#ffffff",
+          fontSize: 12,
+          fontWeight: 600
+        }
+      },
+      legend: {
+        text: {
+          fill: "#ffffff",
+          fontSize: 14,
+          fontWeight: 600
+        }
+      }
+    },
+    grid: {
+      line: {
+        stroke: "#ffffff",
+        strokeOpacity: 0.1
+      }
+    },
+    legends: {
+      text: {
+        fill: "#ffffff",
+        fontSize: 12
+      }
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -135,8 +175,8 @@ export function TrafficAnalytics() {
       </div>
 
       <Card className="p-6">
-        <h3 className="text-lg font-semibold mb-4">Hourly Traffic Flow</h3>
-        <div className="h-[300px]">
+        <h3 className="text-lg font-semibold mb-2">Hourly Traffic Flow</h3>
+        <div className="h-[400px]">
           <ResponsiveLine
             data={[
               {
@@ -147,44 +187,60 @@ export function TrafficAnalytics() {
                 }))
               }
             ]}
-            margin={{ top: 20, right: 20, bottom: 50, left: 60 }}
+            margin={{ top: 40, right: 20, bottom: 70, left: 60 }}
             xScale={{ type: "point" }}
             yScale={{ type: "linear", min: 0, max: 100 }}
             curve="cardinal"
             axisBottom={{
               tickSize: 5,
-              tickPadding: 5,
-              tickRotation: -45
+              tickPadding: 12,
+              tickRotation: -45,
+              legend: "Hour of Day",
+              legendOffset: 60,
+              legendPosition: "middle"
             }}
             axisLeft={{
               tickSize: 5,
               tickPadding: 5,
               tickRotation: 0,
               legend: "Congestion Level (%)",
-              legendOffset: -40,
+              legendOffset: -50,
               legendPosition: "middle"
             }}
             enablePoints={true}
             pointSize={8}
             pointColor="#ffffff"
+            enableSlices="x"
+            sliceTooltip={({ slice }) => (
+              <div style={{ background: 'white', padding: '9px 12px', border: '1px solid #ccc' }}>
+                {slice.points.map(point => (
+                  <div key={point.id}>
+                    <strong>Hour: </strong>{String(point.data.x)}<br />
+                    <strong>Congestion: </strong>{String(point.data.y)}%
+                  </div>
+                ))}
+              </div>
+            )}
             pointBorderWidth={2}
             pointBorderColor="#FF4560"
             enableArea={true}
             areaOpacity={0.1}
             colors={["#FF4560"]}
             enableGridX={false}
+            enableGridY={false}
+            theme={chartTheme}
           />
         </div>
       </Card>
 
       <Card className="p-6">
         <h3 className="text-lg font-semibold mb-4">Junction-wise Traffic Status</h3>
-        <div className="h-[300px]">
+        <div className="h-[400px] -mt-2">
           <ResponsiveBar
             data={trafficData.junctions}
             keys={['congestionLevel']}
             indexBy="name"
-            margin={{ top: 20, right: 20, bottom: 50, left: 60 }}
+            margin={{ top: 30, right: 20, bottom: 120, left: 60 }}
             padding={0.3}
             valueScale={{ type: 'linear' }}
             colors={({ data }) => {
@@ -194,10 +250,16 @@ export function TrafficAnalytics() {
               return '#FF4560';
             }}
             borderRadius={4}
+            enableGridX={false}
+            enableGridY={false}
+            theme={chartTheme}
             axisBottom={{
               tickSize: 5,
-              tickPadding: 5,
-              tickRotation: -45
+              tickPadding: 25,
+              tickRotation: -25,
+              legend: "Junction Name",
+              legendOffset: 100,
+              legendPosition: "middle"
             }}
             axisLeft={{
               tickSize: 5,
@@ -207,6 +269,10 @@ export function TrafficAnalytics() {
               legendPosition: 'middle',
               legendOffset: -40
             }}
+            labelSkipWidth={12}
+            labelSkipHeight={12}
+            labelTextColor="#ffffff"
+            label={d => `${d.value}%`}
           />
         </div>
       </Card>
@@ -214,7 +280,7 @@ export function TrafficAnalytics() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card className="p-6">
           <h3 className="text-lg font-semibold mb-4">Speed vs Vehicle Count</h3>
-          <div className="h-[300px]">
+          <div className="h-[400px] -mt-2">
             <ResponsiveLine
               data={[
                 {
@@ -234,20 +300,29 @@ export function TrafficAnalytics() {
                   color: "#00E396"
                 }
               ]}
-              margin={{ top: 20, right: 20, bottom: 50, left: 60 }}
+              margin={{ top: 20, right: 20, bottom: 120, left: 60 }}
               xScale={{ type: "point" }}
               yScale={{ type: "linear", min: "auto", max: "auto" }}
+              theme={chartTheme}
               axisBottom={{
                 tickSize: 5,
-                tickPadding: 5,
-                tickRotation: -45
+                tickPadding: 20,
+                tickRotation: -45,
+                legend: "Hour",
+                legendOffset: 90,
+                legendPosition: "middle",
+                format: (value) => {
+                  // Format hour values to be more readable
+                  const hour = parseInt(value as string);
+                  return `${hour}:00`;
+                }
               }}
               axisLeft={{
                 tickSize: 5,
                 tickPadding: 5,
                 tickRotation: 0,
-                legend: "Value",
-                legendOffset: -40,
+                legend: "Speed (km/h) / Vehicle Count",
+                legendOffset: -50,
                 legendPosition: "middle"
               }}
               pointSize={8}
@@ -256,16 +331,39 @@ export function TrafficAnalytics() {
               pointBorderColor={{ from: "color" }}
               enableArea={false}
               enableGridX={false}
+              enableGridY={false}
+              enableSlices="x"
+              sliceTooltip={({ slice }) => (
+                <div style={{ background: 'white', padding: '9px 12px', border: '1px solid #ccc' }}>
+                  {slice.points.map(point => (
+                    <div key={point.id}>
+                      <strong>Hour: </strong>{String(point.data.x)}<br />
+                      <strong>{point.serieId === 'speed' ? 'Speed: ' : 'Vehicles: '}</strong>
+                      {String(point.data.y)}{point.serieId === 'speed' ? ' km/h' : ''}
+                    </div>
+                  ))}
+                </div>
+              )}
               legends={[
                 {
                   anchor: "bottom",
                   direction: "row",
                   justify: false,
-                  translateY: 40,
+                  translateY: 80,
+                  itemsSpacing: 20,
                   itemWidth: 100,
                   itemHeight: 20,
                   symbolSize: 10,
-                  symbolShape: "circle"
+                  symbolShape: "circle",
+                  itemTextColor: "#ffffff",
+                  effects: [
+                    {
+                      on: "hover",
+                      style: {
+                        itemTextColor: "#ffffff"
+                      }
+                    }
+                  ]
                 }
               ]}
             />

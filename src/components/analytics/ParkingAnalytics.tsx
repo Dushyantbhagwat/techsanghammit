@@ -3,48 +3,93 @@ import { Card } from "@/components/ui/card";
 import { ResponsiveLine } from "@nivo/line";
 import { ResponsiveBar } from "@nivo/bar";
 import { useCity } from "@/contexts/CityContext";
+import { fetchParkingData, type LocationParkingData } from "@/services/parking";
 
-interface ParkingData {
-  current: {
-    totalSpaces: number;
-    occupiedSpaces: number;
-    occupancyRate: number;
-    timestamp: string;
-  };
-  hourly: Array<{
-    hour: string;
-    occupiedSpaces: number;
-    occupancyRate: number;
-  }>;
-  locations: Array<{
-    name: string;
-    totalSpaces: number;
-    occupiedSpaces: number;
-    occupancyRate: number;
-  }>;
-}
+const chartTheme = {
+  textColor: "#ffffff",
+  axis: {
+    domain: {
+      line: {
+        stroke: "#ffffff"
+      }
+    },
+    ticks: {
+      line: {
+        stroke: "#ffffff"
+      },
+      text: {
+        fill: "#ffffff",
+        fontSize: 12,
+        fontWeight: 600
+      }
+    },
+    legend: {
+      text: {
+        fill: "#ffffff",
+        fontSize: 14,
+        fontWeight: 600
+      }
+    }
+  },
+  grid: {
+    line: {
+      stroke: "#ffffff",
+      strokeOpacity: 0.1
+    }
+  },
+  legends: {
+    text: {
+      fill: "#ffffff",
+      fontSize: 12
+    }
+  }
+};
 
 export function ParkingAnalytics() {
-  const [parkingData, setParkingData] = useState<ParkingData>({
-    current: {
-      totalSpaces: 1000,
-      occupiedSpaces: 750,
-      occupancyRate: 75,
-      timestamp: new Date().toISOString()
-    },
-    hourly: Array.from({ length: 24 }, (_, i) => ({
-      hour: `${i.toString().padStart(2, '0')}:00`,
-      occupiedSpaces: 500 + Math.floor(Math.random() * 400),
-      occupancyRate: 50 + Math.floor(Math.random() * 40)
-    })),
-    locations: [
-      { name: "Central Parking", totalSpaces: 300, occupiedSpaces: 285, occupancyRate: 95 },
-      { name: "Mall Parking", totalSpaces: 400, occupiedSpaces: 280, occupancyRate: 70 },
-      { name: "Station Parking", totalSpaces: 200, occupiedSpaces: 140, occupancyRate: 70 },
-      { name: "Market Parking", totalSpaces: 100, occupiedSpaces: 45, occupancyRate: 45 }
-    ]
-  });
+  const [parkingData, setParkingData] = useState<LocationParkingData | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const { selectedCity } = useCity();
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setIsLoading(true);
+        setError(null);
+        const data = await fetchParkingData(selectedCity);
+        setParkingData(Array.isArray(data) ? data[0] : data);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to fetch parking data');
+        console.error('Error fetching parking data:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
+    const interval = setInterval(fetchData, 5 * 60 * 1000); // Update every 5 minutes
+    return () => clearInterval(interval);
+  }, [selectedCity]);
+
+  if (isLoading) {
+    return <div>Loading parking data...</div>;
+  }
+
+  if (error) {
+    return <div className="text-red-500">Error: {error}</div>;
+  }
+
+  if (!parkingData) {
+    return <div>No parking data available</div>;
+  }
+
+  const getOccupancyStatus = (rate: number) => {
+    if (rate <= 50) return { text: "Low Occupancy", color: "text-green-500" };
+    if (rate <= 80) return { text: "Moderate", color: "text-amber-500" };
+    return { text: "High Occupancy", color: "text-red-500" };
+  };
+
+  const currentStatus = getOccupancyStatus(parkingData.current.occupancyRate);
 
   return (
     <div className="space-y-6">
@@ -61,14 +106,14 @@ export function ParkingAnalytics() {
         <Card className="p-6">
           <h3 className="text-lg font-semibold mb-2">Occupied Spaces</h3>
           <div className="text-3xl font-bold">{parkingData.current.occupiedSpaces}</div>
-          <div className="mt-2 text-amber-500">High Occupancy</div>
+          <div className={`mt-2 ${currentStatus.color}`}>{currentStatus.text}</div>
           <div className="mt-4 text-sm text-gray-500">Updated now</div>
         </Card>
 
         <Card className="p-6">
           <h3 className="text-lg font-semibold mb-2">Occupancy Rate</h3>
           <div className="text-3xl font-bold">{parkingData.current.occupancyRate}%</div>
-          <div className="mt-2 text-amber-500">Peak Hours</div>
+          <div className={`mt-2 ${currentStatus.color}`}>{currentStatus.text}</div>
           <div className="mt-4 text-sm text-gray-500">Updated now</div>
         </Card>
       </div>
@@ -86,14 +131,17 @@ export function ParkingAnalytics() {
                 }))
               }
             ]}
-            margin={{ top: 20, right: 20, bottom: 50, left: 60 }}
+            margin={{ top: 20, right: 20, bottom: 90, left: 60 }}
             xScale={{ type: "point" }}
             yScale={{ type: "linear", min: 0, max: 100 }}
             curve="cardinal"
             axisBottom={{
               tickSize: 5,
-              tickPadding: 5,
-              tickRotation: -45
+              tickPadding: 20,
+              tickRotation: -45,
+              legend: "Hour",
+              legendOffset: 70,
+              legendPosition: "middle"
             }}
             axisLeft={{
               tickSize: 5,
@@ -112,6 +160,19 @@ export function ParkingAnalytics() {
             areaOpacity={0.1}
             colors={["#00E396"]}
             enableGridX={false}
+            enableGridY={false}
+            theme={chartTheme}
+            enableSlices="x"
+            sliceTooltip={({ slice }) => (
+              <div style={{ background: 'white', padding: '9px 12px', border: '1px solid #ccc' }}>
+                {slice.points.map(point => (
+                  <div key={point.id}>
+                    <strong>Hour: </strong>{String(point.data.x)}<br />
+                    <strong>Occupancy: </strong>{String(point.data.y)}%
+                  </div>
+                ))}
+              </div>
+            )}
           />
         </div>
       </Card>
@@ -123,7 +184,7 @@ export function ParkingAnalytics() {
             data={parkingData.locations}
             keys={['occupancyRate']}
             indexBy="name"
-            margin={{ top: 20, right: 20, bottom: 50, left: 60 }}
+            margin={{ top: 20, right: 20, bottom: 90, left: 60 }}
             padding={0.3}
             valueScale={{ type: 'linear' }}
             colors={({ data }) => {
@@ -135,8 +196,11 @@ export function ParkingAnalytics() {
             borderRadius={4}
             axisBottom={{
               tickSize: 5,
-              tickPadding: 5,
-              tickRotation: -45
+              tickPadding: 20,
+              tickRotation: -45,
+              legend: "Location Name",
+              legendOffset: 70,
+              legendPosition: "middle"
             }}
             axisLeft={{
               tickSize: 5,
@@ -146,6 +210,13 @@ export function ParkingAnalytics() {
               legendPosition: 'middle',
               legendOffset: -40
             }}
+            enableGridX={false}
+            enableGridY={false}
+            theme={chartTheme}
+            labelSkipWidth={12}
+            labelSkipHeight={12}
+            labelTextColor="#ffffff"
+            label={d => `${d.value}%`}
           />
         </div>
       </Card>
@@ -162,15 +233,18 @@ export function ParkingAnalytics() {
               }))}
               keys={['occupied', 'available']}
               indexBy="name"
-              margin={{ top: 20, right: 20, bottom: 50, left: 60 }}
+              margin={{ top: 20, right: 20, bottom: 110, left: 60 }}
               padding={0.3}
               groupMode="stacked"
               colors={['#FF4560', '#00E396']}
               borderRadius={4}
               axisBottom={{
                 tickSize: 5,
-                tickPadding: 5,
-                tickRotation: -45
+                tickPadding: 15,
+                tickRotation: -45,
+                legend: "Location Name",
+                legendOffset: 90,
+                legendPosition: "middle"
               }}
               axisLeft={{
                 tickSize: 5,
@@ -180,17 +254,25 @@ export function ParkingAnalytics() {
                 legendPosition: 'middle',
                 legendOffset: -40
               }}
+              enableGridX={false}
+              enableGridY={false}
+              theme={chartTheme}
+              labelSkipWidth={12}
+              labelSkipHeight={12}
+              labelTextColor="#ffffff"
               legends={[
                 {
                   dataFrom: 'keys',
-                  anchor: 'bottom',
+                  anchor: 'top-right',
                   direction: 'row',
                   justify: false,
-                  translateY: 40,
+                  translateY: 10,
+                  translateX: -10,
                   itemWidth: 100,
                   itemHeight: 20,
                   itemDirection: 'left-to-right',
-                  symbolSize: 10
+                  symbolSize: 10,
+                  itemTextColor: "#ffffff"
                 }
               ]}
             />
@@ -203,17 +285,28 @@ export function ParkingAnalytics() {
             <div>
               <h4 className="font-medium mb-2">Current Status</h4>
               <ul className="list-disc list-inside space-y-1 text-sm">
-                <li>High occupancy at Central Parking</li>
-                <li>Moderate availability at Mall Parking</li>
-                <li>Good availability at Market Parking</li>
+                {parkingData.locations.map(loc => {
+                  const status = getOccupancyStatus(loc.occupancyRate);
+                  return (
+                    <li key={loc.name} className={status.color}>
+                      {status.text} at {loc.name} ({loc.occupancyRate}% full)
+                    </li>
+                  );
+                })}
               </ul>
             </div>
             <div>
               <h4 className="font-medium mb-2">Recommendations</h4>
               <ul className="list-disc list-inside space-y-1 text-sm">
-                <li>Consider Market Parking for longer stays</li>
-                <li>Peak hours expected between 2 PM - 6 PM</li>
-                <li>Check real-time updates before arrival</li>
+                {parkingData.locations
+                  .filter(loc => loc.occupancyRate <= 60)
+                  .map(loc => (
+                    <li key={loc.name} className="text-green-500">
+                      Good availability at {loc.name} ({loc.totalSpaces - loc.occupiedSpaces} spaces)
+                    </li>
+                  ))}
+                <li className="text-amber-500">Peak hours expected between 5 PM - 8 PM</li>
+                <li className="text-blue-500">Check real-time updates before arrival</li>
               </ul>
             </div>
           </div>

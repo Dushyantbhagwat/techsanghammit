@@ -1,9 +1,10 @@
 import { useState } from "react"
-import { Link, useLocation } from "react-router-dom"
+import { Link, useLocation, useNavigate } from "react-router-dom"
 import { useAuth } from "@/contexts/AuthContext"
 
 export function LoginPage() {
-  const location = useLocation()
+  const location = useLocation();
+  const navigate = useNavigate();
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [rememberMe, setRememberMe] = useState(false)
@@ -11,9 +12,10 @@ export function LoginPage() {
   const successMessage = location.state?.message
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
     try {
-      await login(email, password)
+      await login(email, password);
+      navigate('/dashboard');
     } catch (err) {
       // Error is handled by AuthContext
     }
@@ -73,7 +75,6 @@ export function LoginPage() {
                       text-white placeholder-gray-400 focus:outline-none focus:ring-1 
                       focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
                       placeholder="Enter your email"
-                      required
                       autoComplete="email"
                     />
                   </div>
@@ -106,7 +107,6 @@ export function LoginPage() {
                       text-white placeholder-gray-400 focus:outline-none focus:ring-1 
                       focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
                       placeholder="Enter your password"
-                      required
                       autoComplete="current-password"
                     />
                   </div>

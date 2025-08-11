@@ -30,6 +30,46 @@ interface StreetLightData {
   }>;
 }
 
+const chartTheme = {
+  textColor: "#ffffff",
+  axis: {
+    domain: {
+      line: {
+        stroke: "#ffffff"
+      }
+    },
+    ticks: {
+      line: {
+        stroke: "#ffffff"
+      },
+      text: {
+        fill: "#ffffff",
+        fontSize: 12,
+        fontWeight: 600
+      }
+    },
+    legend: {
+      text: {
+        fill: "#ffffff",
+        fontSize: 14,
+        fontWeight: 600
+      }
+    }
+  },
+  grid: {
+    line: {
+      stroke: "#ffffff",
+      strokeOpacity: 0.1
+    }
+  },
+  legends: {
+    text: {
+      fill: "#ffffff",
+      fontSize: 12
+    }
+  }
+};
+
 export function StreetLightAnalytics() {
   const [lightData, setLightData] = useState<StreetLightData>({
     current: {
@@ -95,7 +135,7 @@ export function StreetLightAnalytics() {
 
       <Card className="p-6">
         <h3 className="text-lg font-semibold mb-4">Hourly Energy Consumption</h3>
-        <div className="h-[300px]">
+        <div className="h-[350px] -mt-2">
           <ResponsiveLine
             data={[
               {
@@ -106,23 +146,27 @@ export function StreetLightAnalytics() {
                 }))
               }
             ]}
-            margin={{ top: 20, right: 20, bottom: 50, left: 60 }}
+            margin={{ top: 40, right: 20, bottom: 90, left: 60 }}
             xScale={{ type: "point" }}
             yScale={{ type: "linear", min: 0, max: "auto" }}
             curve="cardinal"
             axisBottom={{
               tickSize: 5,
-              tickPadding: 5,
-              tickRotation: -45
+              tickPadding: 20,
+              tickRotation: -45,
+              legend: "Hour",
+              legendOffset: 70,
+              legendPosition: "middle"
             }}
             axisLeft={{
               tickSize: 5,
-              tickPadding: 5,
+              tickPadding: 16,
               tickRotation: 0,
               legend: "Energy Consumption (kWh)",
-              legendOffset: -40,
+              legendOffset: -50,
               legendPosition: "middle"
             }}
+            theme={chartTheme}
             enablePoints={true}
             pointSize={8}
             pointColor="#ffffff"
@@ -132,13 +176,14 @@ export function StreetLightAnalytics() {
             areaOpacity={0.1}
             colors={["#00E396"]}
             enableGridX={false}
+            enableGridY={false}
           />
         </div>
       </Card>
 
       <Card className="p-6">
         <h3 className="text-lg font-semibold mb-4">Zone-wise Light Status</h3>
-        <div className="h-[300px]">
+        <div className="h-[350px] -mt-2">
           <ResponsiveBar
             data={lightData.zones.map(zone => ({
               name: zone.name,
@@ -147,24 +192,30 @@ export function StreetLightAnalytics() {
             }))}
             keys={['active', 'faulty']}
             indexBy="name"
-            margin={{ top: 20, right: 20, bottom: 50, left: 60 }}
+            margin={{ top: 40, right: 20, bottom: 90, left: 60 }}
             padding={0.3}
             groupMode="stacked"
             colors={['#00E396', '#FF4560']}
             borderRadius={4}
             axisBottom={{
               tickSize: 5,
-              tickPadding: 5,
-              tickRotation: -45
+              tickPadding: 20,
+              tickRotation: -45,
+              legend: "Zone Name",
+              legendOffset: 70,
+              legendPosition: "middle"
             }}
             axisLeft={{
               tickSize: 5,
-              tickPadding: 5,
+              tickPadding: 16,
               tickRotation: 0,
               legend: 'Number of Lights',
               legendPosition: 'middle',
-              legendOffset: -40
+              legendOffset: -50
             }}
+            theme={chartTheme}
+            enableGridX={false}
+            enableGridY={false}
             legends={[
               {
                 dataFrom: 'keys',
@@ -185,28 +236,34 @@ export function StreetLightAnalytics() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card className="p-6">
           <h3 className="text-lg font-semibold mb-4">Fault Distribution</h3>
-          <div className="h-[300px]">
+          <div className="h-[350px] -mt-2">
             <ResponsiveBar
               data={lightData.faultTypes}
               keys={['count']}
               indexBy="type"
-              margin={{ top: 20, right: 20, bottom: 50, left: 60 }}
+              margin={{ top: 40, right: 20, bottom: 120, left: 60 }}
               padding={0.3}
               colors="#FF4560"
               borderRadius={4}
               axisBottom={{
                 tickSize: 5,
-                tickPadding: 5,
-                tickRotation: -45
+                tickPadding: 25,
+                tickRotation: -45,
+                legend: "Fault Type",
+                legendOffset: 110,
+                legendPosition: "middle"
               }}
               axisLeft={{
                 tickSize: 5,
-                tickPadding: 5,
+                tickPadding: 16,
                 tickRotation: 0,
                 legend: 'Number of Faults',
                 legendPosition: 'middle',
-                legendOffset: -40
+                legendOffset: -50
               }}
+              theme={chartTheme}
+              enableGridX={false}
+              enableGridY={false}
             />
           </div>
         </Card>

@@ -47,10 +47,23 @@ export function DashboardPage() {
         ]);
         
         setEnvironmentalData(envData);
-        setParkingData([
-          { id: "Available", value: parkData.current.availableSpots, color: "#00E396" },
-          { id: "Occupied", value: parkData.current.occupiedSpots, color: "#FF4560" }
-        ]);
+        // Transform parking data for pie chart
+        if ('current' in parkData) {
+          const totalSpaces = parkData.current.totalSpaces;
+          const occupiedSpaces = parkData.current.occupiedSpaces;
+          const availableSpaces = totalSpaces - occupiedSpaces;
+          
+          setParkingData([
+            { id: "Available", value: availableSpaces, color: "#00E396" },
+            { id: "Occupied", value: occupiedSpaces, color: "#FF4560" }
+          ]);
+        } else {
+          console.warn('Invalid parking data format');
+          setParkingData([
+            { id: "Available", value: 0, color: "#00E396" },
+            { id: "Occupied", value: 0, color: "#FF4560" }
+          ]);
+        }
 
         let timeData: AqiDataPoint[] = [];
         switch (activeTab) {
@@ -122,11 +135,11 @@ export function DashboardPage() {
         <MetricCard
           icon={<Car className="h-8 w-8 text-[#6C5DD3]" />}
           title="Parking Status"
-          value={parkingData ? parkingData[0].value + parkingData[1].value : '0'}
+          value={parkingData?.length ? (parkingData[0]?.value || 0) + (parkingData[1]?.value || 0) : '0'}
           subtitle="Total spots"
           details={[
-            { label: "Available", value: parkingData ? parkingData[0].value.toString() : '0' },
-            { label: "Occupied", value: parkingData ? parkingData[1].value.toString() : '0' },
+            { label: "Available", value: String(parkingData?.length ? parkingData[0]?.value || 0 : 0) },
+            { label: "Occupied", value: String(parkingData?.length ? parkingData[1]?.value || 0 : 0) },
           ]}
           analyticsSection="parking"
         />
@@ -163,28 +176,33 @@ export function DashboardPage() {
               ))}
             </div>
           </div>
-          <div className="h-[300px]">
+          <div className="h-[380px]">
             <ResponsiveBar<AqiDataPoint>
               data={aqiData}
               keys={['value']}
               indexBy="label"
-              margin={{ top: 20, right: 20, bottom: 50, left: 50 }}
+              margin={{ top: 85, right: 20, bottom: 115, left: 60 }}
               padding={0.3}
               valueScale={{ type: 'linear' }}
               colors={({ data }) => getAqiColor(data.value)}
               borderRadius={4}
               axisBottom={{
                 tickSize: 5,
-                tickPadding: 5,
+                tickPadding: 12,
                 tickRotation: -45,
+                legend: activeTab === "DAY" ? "Hours" :
+                       activeTab === "WK" ? "Weeks" :
+                       activeTab === "MO" ? "Months" : "Years",
+                legendPosition: "middle",
+                legendOffset: 75
               }}
               axisLeft={{
                 tickSize: 5,
                 tickPadding: 5,
                 tickRotation: 0,
-                legend: 'AQI',
+                legend: 'Air Quality Index (AQI)',
                 legendPosition: 'middle',
-                legendOffset: -40
+                legendOffset: -50
               }}
               labelSkipWidth={12}
               labelSkipHeight={12}
@@ -212,18 +230,42 @@ export function DashboardPage() {
                 </div>
               )}
               theme={{
+                text: {
+                  fill: "#ffffff",
+                  fontSize: 12
+                },
                 axis: {
+                  domain: {
+                    line: {
+                      stroke: "#ffffff"
+                    }
+                  },
                   ticks: {
+                    line: {
+                      stroke: "#ffffff"
+                    },
                     text: {
+                      fill: "#ffffff"
+                    }
+                  },
+                  legend: {
+                    text: {
+                      fill: "#ffffff",
                       fontSize: 12,
-                      fill: "#6B7280"
+                      fontWeight: 600
                     }
                   }
                 },
                 grid: {
                   line: {
-                    stroke: "#E5E7EB",
-                    strokeWidth: 1
+                    stroke: "#ffffff",
+                    strokeOpacity: 0.1
+                  }
+                },
+                legends: {
+                  text: {
+                    fill: "#ffffff",
+                    fontSize: 12
                   }
                 }
               }}

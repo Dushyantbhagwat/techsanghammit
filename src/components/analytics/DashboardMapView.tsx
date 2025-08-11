@@ -1,118 +1,339 @@
 import { useEffect, useRef, useState } from 'react';
+import { initGoogleMaps, createMap, createHeatmap, createTrafficLayer } from '@/lib/maps';
 import { Card } from '@/components/ui/card';
 import { useCity } from '@/contexts/CityContext';
+import { fetchTrafficData } from '@/services/traffic';
+import { fetchSecurityData } from '@/services/security';
+import { fetchEnvironmentalData } from '@/services/aqi';
 
 declare global {
   interface Window {
-    google: any;
-    initDashboardMap: () => void;
+    google: typeof google;
+    [key: string]: any; // Allow dynamic callback names
   }
 }
 
-const cityData = {
-  Borivali: {
-    center: { lat: 19.2335, lng: 72.8474 },
-    heatmapData: [
-      { lat: 19.2335, lng: 72.8474, weight: 0.9 }, // Station Area
-      { lat: 19.2310, lng: 72.8460, weight: 0.7 }, // Market Complex
-      { lat: 19.2360, lng: 72.8490, weight: 0.5 }  // Residential Area
-    ]
-  },
-  Thane: {
-    center: { lat: 19.2183, lng: 72.9780 },
-    heatmapData: [
-      { lat: 19.2183, lng: 72.9780, weight: 0.8 }, // Lake City Mall
-      { lat: 19.2150, lng: 72.9760, weight: 0.9 }, // Station Complex
-      { lat: 19.2200, lng: 72.9800, weight: 0.7 }  // Business District
-    ]
-  },
-  Kalyan: {
-    center: { lat: 19.2403, lng: 73.1305 },
-    heatmapData: [
-      { lat: 19.2403, lng: 73.1305, weight: 0.8 }, // Kalyan Station
-      { lat: 19.2350, lng: 73.1290, weight: 0.6 }, // Market Area
-      { lat: 19.2420, lng: 73.1320, weight: 0.7 }  // Shopping District
-    ]
-  }
+// Type definitions for our data structures
+interface SecurityZone {
+  riskLevel: 'Low' | 'Medium' | 'High';
+}
+
+interface TrafficData {
+  currentTraffic: {
+    vehicleCount: number;
+  };
+}
+
+interface EnvironmentalData {
+  current: {
+    aqi: {
+      value: number;
+    };
+  };
+}
+
+interface CityData {
+  center: google.maps.LatLngLiteral;
+  heatmapData: Array<{
+    lat: number;
+    lng: number;
+    weight: number;
+    type: 'traffic' | 'security' | 'environmental';
+  }>;
+}
+
+const CITY_COORDINATES: Record<string, google.maps.LatLngLiteral> = {
+  Borivali: { lat: 19.2335, lng: 72.8474 },
+  Thane: { lat: 19.2000, lng: 72.9780 },
+  Kalyan: { lat: 19.2350, lng: 73.1305 }
 };
 
 export function DashboardMapView() {
   const { selectedCity } = useCity();
-  const mapRefs = {
+  const [error, setError] = useState<string | null>(null);
+  const [cityData, setCityData] = useState<Record<string, CityData>>({});
+  const [mapsLoaded, setMapsLoaded] = useState(false);
+  const maps = useRef<Record<string, google.maps.Map>>({});
+  const heatmaps = useRef<Record<string, google.maps.visualization.HeatmapLayer>>({});
+  
+  const mapRefs: Record<string, React.RefObject<HTMLDivElement>> = {
     Borivali: useRef<HTMLDivElement>(null),
     Thane: useRef<HTMLDivElement>(null),
     Kalyan: useRef<HTMLDivElement>(null)
   };
-  const [mapsLoaded, setMapsLoaded] = useState(false);
 
-  useEffect(() => {
-    const script = document.createElement('script');
-    script.src = `https://maps.googleapis.com/maps/api/js?key=AIzaSyDPV8Y1PIXOmYfzu38u1fyyWE3UPBETf8U&libraries=visualization&callback=initDashboardMap`;
-    script.async = true;
-    script.defer = true;
+  // Debounce function to prevent excessive updates
+  const debounce = (func: Function, wait: number) => {
+    let timeout: NodeJS.Timeout;
+    return (...args: any[]) => {
+      clearTimeout(timeout);
+      timeout = setTimeout(() => func(...args), wait);
+    };
+  };
 
-    window.initDashboardMap = () => {
-      Object.entries(cityData).forEach(([city, data]) => {
-        const mapRef = mapRefs[city as keyof typeof mapRefs];
-        if (!mapRef.current) return;
+  // Memoized function to process city data
+  const processCityData = (
+    city: string,
+    trafficData: TrafficData | any[],
+    securityData: { zones: SecurityZone[] },
+    environmentalData: EnvironmentalData
+  ): CityData['heatmapData'] => {
+    const heatmapData: CityData['heatmapData'] = [];
 
-        const map = new window.google.maps.Map(mapRef.current, {
-          zoom: 14,
-          center: data.center,
-          mapTypeId: 'roadmap',
-          disableDefaultUI: true,
-          draggable: false,
-          zoomControl: false,
-          scrollwheel: false,
-          streetViewControl: false
-        });
-
-        // Add Traffic Layer
-        const trafficLayer = new window.google.maps.TrafficLayer();
-        trafficLayer.setMap(map);
-
-        // Add Heatmap
-        const heatmapData = data.heatmapData.map(point => ({
-          location: new window.google.maps.LatLng(point.lat, point.lng),
-          weight: point.weight
-        }));
-
-        const heatmap = new window.google.maps.visualization.HeatmapLayer({
-          data: heatmapData.map(point => point.location),
-          radius: 30,
-          opacity: 0.7
-        });
-        heatmap.setMap(map);
+    // Process traffic data
+    if (!Array.isArray(trafficData)) {
+      const congestionLevel = Math.min(trafficData.currentTraffic.vehicleCount / 1000, 1);
+      heatmapData.push({
+        lat: CITY_COORDINATES[city].lat + 0.002,
+        lng: CITY_COORDINATES[city].lng + 0.002,
+        weight: congestionLevel,
+        type: 'traffic'
       });
+    }
 
-      setMapsLoaded(true);
+    // Process security data (limit to max 5 zones for performance)
+    securityData.zones.slice(0, 5).forEach((zone: any, index: number) => {
+      if (zone.riskLevel !== 'Low') {
+        heatmapData.push({
+          lat: CITY_COORDINATES[city].lat - 0.002 + (index * 0.001),
+          lng: CITY_COORDINATES[city].lng - 0.002 + (index * 0.001),
+          weight: zone.riskLevel === 'High' ? 0.9 : 0.6,
+          type: 'security'
+        });
+      }
+    });
+
+    // Process environmental data
+    const aqiWeight = Math.min(environmentalData.current.aqi.value / 500, 1);
+    heatmapData.push({
+      lat: CITY_COORDINATES[city].lat - 0.001,
+      lng: CITY_COORDINATES[city].lng - 0.001,
+      weight: aqiWeight,
+      type: 'environmental'
+    });
+
+    return heatmapData;
+  };
+
+  // Optimized update function for heatmaps
+  const updateHeatmap = (city: string, data: CityData['heatmapData']) => {
+    const heatmap = heatmaps.current[city];
+    if (heatmap && data.length > 0) {
+      const heatmapPoints = new google.maps.MVCArray(
+        data.map(point => ({
+          location: new google.maps.LatLng(point.lat, point.lng),
+          weight: point.weight
+        }))
+      );
+      heatmap.setData(heatmapPoints);
+    }
+  };
+
+  // Fetch real-time data and update heatmap
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const newCityData: Record<string, CityData> = {};
+        const cities = Object.keys(CITY_COORDINATES);
+
+        // Fetch data for all cities in parallel
+        const cityDataPromises = cities.map(async (city) => {
+          const [trafficData, securityData, environmentalData] = await Promise.all([
+            fetchTrafficData(city),
+            fetchSecurityData(city),
+            fetchEnvironmentalData(city)
+          ]);
+
+          const heatmapData = processCityData(
+            city,
+            trafficData,
+            securityData,
+            environmentalData
+          );
+
+          return { city, heatmapData };
+        });
+
+        const results = await Promise.all(cityDataPromises);
+
+        // Process results and update state
+        results.forEach(({ city, heatmapData }) => {
+          newCityData[city] = {
+            center: CITY_COORDINATES[city],
+            heatmapData
+          };
+
+          // Update heatmap if maps are loaded
+          if (mapsLoaded) {
+            updateHeatmap(city, heatmapData);
+          }
+        });
+
+        setCityData(newCityData);
+      } catch (err) {
+        console.error('Error fetching data for maps:', err);
+        setError('Failed to fetch real-time data');
+      }
     };
 
-    document.head.appendChild(script);
+    // Initial fetch
+    fetchData();
+
+    // Debounced updates
+    const debouncedFetch = debounce(fetchData, 1000);
+    const interval = setInterval(debouncedFetch, 30 * 1000);
 
     return () => {
-      if (script.parentNode) {
-        script.parentNode.removeChild(script);
+      clearInterval(interval);
+    };
+  }, [mapsLoaded]);
+
+  useEffect(() => {
+    const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+    if (!apiKey) {
+      setError('Google Maps API key is not configured');
+      return;
+    }
+
+    let isMounted = true;
+
+    const initializeMapsAndLayers = async () => {
+      try {
+        await initGoogleMaps({
+          apiKey,
+          onError: (error) => setError(error.message)
+        });
+
+        if (!isMounted) return;
+
+        // Initialize maps for each city
+        Object.entries(CITY_COORDINATES).forEach(([city, center]) => {
+          const mapRef = mapRefs[city];
+          if (!mapRef?.current) return;
+
+          // Create map instance
+          const map = createMap(mapRef.current, {
+            zoom: 13,
+            center,
+            mapTypeId: 'roadmap',
+            disableDefaultUI: true,
+            draggable: false,
+            zoomControl: false,
+            scrollwheel: false,
+            streetViewControl: false,
+            styles: [
+              {
+                featureType: 'all',
+                elementType: 'labels.text.fill',
+                stylers: [{ color: '#ffffff' }]
+              },
+              {
+                featureType: 'all',
+                elementType: 'labels.text.stroke',
+                stylers: [{ color: '#3e606f' }]
+              },
+              {
+                featureType: 'administrative',
+                elementType: 'geometry',
+                stylers: [{ color: '#2c5364' }]
+              }
+            ]
+          });
+
+          // Store map instance
+          maps.current[city] = map;
+
+          // Add traffic layer
+          const trafficLayer = createTrafficLayer();
+          trafficLayer.setMap(map);
+
+          // Create heatmap layer
+          const heatmap = createHeatmap({
+            map,
+            radius: 30,
+            opacity: 0.7,
+            gradient: [
+              'rgba(0, 255, 255, 0)',
+              'rgba(0, 255, 255, 1)',
+              'rgba(0, 191, 255, 1)',
+              'rgba(0, 127, 255, 1)',
+              'rgba(0, 63, 255, 1)',
+              'rgba(0, 0, 255, 1)',
+              'rgba(0, 0, 223, 1)',
+              'rgba(0, 0, 191, 1)',
+              'rgba(0, 0, 159, 1)',
+              'rgba(0, 0, 127, 1)',
+              'rgba(63, 0, 91, 1)',
+              'rgba(127, 0, 63, 1)',
+              'rgba(191, 0, 31, 1)',
+              'rgba(255, 0, 0, 1)'
+            ]
+          });
+
+          heatmaps.current[city] = heatmap;
+        });
+
+        if (isMounted) {
+          setMapsLoaded(true);
+        }
+      } catch (err) {
+        console.error('Error initializing maps:', err);
+        if (isMounted) {
+          setError('Failed to initialize maps');
+          setMapsLoaded(false);
+        }
       }
-      window.initDashboardMap = () => {};
+    };
+
+    initializeMapsAndLayers();
+
+    return () => {
+      isMounted = false;
+
+      // Clean up maps and event listeners
+      Object.values(maps.current).forEach(map => {
+        if (map) {
+          google.maps.event.clearInstanceListeners(map);
+        }
+      });
+
+      // Clean up heatmaps
+      Object.values(heatmaps.current).forEach(heatmap => {
+        if (heatmap) {
+          heatmap.setMap(null);
+        }
+      });
+
+      // Reset refs and state
+      maps.current = {};
+      heatmaps.current = {};
+      setMapsLoaded(false);
     };
   }, []);
 
+  if (error) {
+    return (
+      <div className="p-6 bg-red-500/10 rounded-lg">
+        <p className="text-red-500">Error: {error}</p>
+      </div>
+    );
+  }
+
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-      {Object.keys(cityData).map(city => (
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      {Object.keys(CITY_COORDINATES).map(city => (
         <Card
           key={city}
-          className={`p-4 ${selectedCity === city ? 'ring-2 ring-primary' : ''}`}
+          className={`p-6 relative ${selectedCity === city ? 'ring-2 ring-primary' : ''}`}
         >
           <h3 className="text-lg font-semibold mb-2">{city}</h3>
           <div
-            ref={mapRefs[city as keyof typeof mapRefs]}
-            className="h-[200px] w-full rounded-lg overflow-hidden"
+            ref={mapRefs[city]}
+            className="h-[250px] w-full rounded-lg overflow-hidden"
           />
           {!mapsLoaded && (
             <div className="absolute inset-0 flex items-center justify-center bg-background/50">
-              <div className="text-sm">Loading map...</div>
+              <div className="text-sm animate-pulse">Loading map...</div>
             </div>
           )}
         </Card>

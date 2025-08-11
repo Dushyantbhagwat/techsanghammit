@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { Card } from "@/components/ui/card";
 import { AlertTriangle, AlertCircle, Bell, Clock, AlertOctagon } from "lucide-react";
 import { ResponsiveLine } from "@nivo/line";
+import { ResponsiveBar } from "@nivo/bar";
 
 // Thresholds for different metrics
 const THRESHOLDS = {
@@ -140,6 +141,46 @@ function generateAlerts() {
 const categories = ["All", "Traffic", "Environmental", "Infrastructure", "Security", "Parking"];
 const types = ["All", "Red", "Yellow", "Green"];
 
+const chartTheme = {
+  textColor: "#ffffff",
+  axis: {
+    domain: {
+      line: {
+        stroke: "#ffffff"
+      }
+    },
+    ticks: {
+      line: {
+        stroke: "#ffffff"
+      },
+      text: {
+        fill: "#ffffff",
+        fontSize: 12,
+        fontWeight: 600
+      }
+    },
+    legend: {
+      text: {
+        fill: "#ffffff",
+        fontSize: 14,
+        fontWeight: 600
+      }
+    }
+  },
+  grid: {
+    line: {
+      stroke: "#ffffff",
+      strokeOpacity: 0.1
+    }
+  },
+  legends: {
+    text: {
+      fill: "#ffffff",
+      fontSize: 12
+    }
+  }
+};
+
 export function AlertsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [selectedCategory, setSelectedCategory] = useState("All");
@@ -248,7 +289,7 @@ export function AlertsPage() {
 
       <Card className="p-6">
         <h3 className="text-lg font-semibold mb-4">Alert Frequency (24h)</h3>
-        <div className="h-[300px]">
+        <div className="h-[400px]">
           <ResponsiveLine
             data={[
               {
@@ -256,35 +297,163 @@ export function AlertsPage() {
                 data: alertsData.map(d => ({ x: d.hour, y: d.count }))
               }
             ]}
-            margin={{ top: 20, right: 20, bottom: 50, left: 60 }}
+            margin={{ top: 40, right: 20, bottom: 70, left: 60 }}
             xScale={{ type: "point" }}
             yScale={{ type: "linear", min: 0, max: "auto" }}
             curve="cardinal"
             axisBottom={{
               tickSize: 5,
-              tickPadding: 5,
-              tickRotation: -45
+              tickPadding: 12,
+              tickRotation: -45,
+              legend: "Hour of Day",
+              legendOffset: 60,
+              legendPosition: "middle"
             }}
             axisLeft={{
               tickSize: 5,
               tickPadding: 5,
               tickRotation: 0,
               legend: "Number of Alerts",
-              legendOffset: -40,
+              legendOffset: -50,
               legendPosition: "middle"
             }}
             enablePoints={true}
             pointSize={8}
             pointColor="#ffffff"
             pointBorderWidth={2}
-            pointBorderColor="#6C5DD3"
+            pointBorderColor="#FF4560"
             enableArea={true}
             areaOpacity={0.1}
-            colors={["#6C5DD3"]}
+            colors={["#FF4560"]}
             enableGridX={false}
+            enableGridY={false}
+            theme={chartTheme}
+            enableSlices="x"
+            sliceTooltip={({ slice }) => (
+              <div style={{ background: 'white', padding: '9px 12px', border: '1px solid #ccc' }}>
+                {slice.points.map(point => (
+                  <div key={point.id}>
+                    <strong>Hour: </strong>{String(point.data.x)}<br />
+                    <strong>Alerts: </strong>{String(point.data.y)}
+                  </div>
+                ))}
+              </div>
+            )}
           />
         </div>
       </Card>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Card className="p-6">
+          <h3 className="text-lg font-semibold mb-4">Alert Distribution by Category</h3>
+          <div className="h-[400px]">
+            <ResponsiveBar
+              data={[
+                {
+                  category: "Traffic",
+                  Critical: alerts.filter(a => a.type === 'red' && a.category === 'Traffic').length,
+                  Warning: alerts.filter(a => a.type === 'yellow' && a.category === 'Traffic').length,
+                  Normal: alerts.filter(a => a.type === 'green' && a.category === 'Traffic').length,
+                },
+                {
+                  category: "Environmental",
+                  Critical: alerts.filter(a => a.type === 'red' && a.category === 'Environmental').length,
+                  Warning: alerts.filter(a => a.type === 'yellow' && a.category === 'Environmental').length,
+                  Normal: alerts.filter(a => a.type === 'green' && a.category === 'Environmental').length,
+                },
+                {
+                  category: "Infrastructure",
+                  Critical: alerts.filter(a => a.type === 'red' && a.category === 'Infrastructure').length,
+                  Warning: alerts.filter(a => a.type === 'yellow' && a.category === 'Infrastructure').length,
+                  Normal: alerts.filter(a => a.type === 'green' && a.category === 'Infrastructure').length,
+                },
+                {
+                  category: "Security",
+                  Critical: alerts.filter(a => a.type === 'red' && a.category === 'Security').length,
+                  Warning: alerts.filter(a => a.type === 'yellow' && a.category === 'Security').length,
+                  Normal: alerts.filter(a => a.type === 'green' && a.category === 'Security').length,
+                }
+              ]}
+              keys={['Critical', 'Warning', 'Normal']}
+              indexBy="category"
+              margin={{ top: 30, right: 130, bottom: 50, left: 60 }}
+              padding={0.3}
+              groupMode="grouped"
+              valueScale={{ type: 'linear' }}
+              colors={['#FF4560', '#FEB019', '#00E396']}
+              borderRadius={4}
+              axisBottom={{
+                tickSize: 5,
+                tickPadding: 5,
+                tickRotation: 0,
+                legend: 'Category',
+                legendPosition: 'middle',
+                legendOffset: 40
+              }}
+              axisLeft={{
+                tickSize: 5,
+                tickPadding: 5,
+                tickRotation: 0,
+                legend: 'Number of Alerts',
+                legendPosition: 'middle',
+                legendOffset: -40
+              }}
+              labelSkipWidth={12}
+              labelSkipHeight={12}
+              labelTextColor="#ffffff"
+              legends={[
+                {
+                  dataFrom: 'keys',
+                  anchor: 'bottom-right',
+                  direction: 'column',
+                  justify: false,
+                  translateX: 120,
+                  translateY: 0,
+                  itemsSpacing: 2,
+                  itemWidth: 100,
+                  itemHeight: 20,
+                  itemDirection: 'left-to-right',
+                  itemOpacity: 0.85,
+                  symbolSize: 20,
+                  itemTextColor: "#ffffff",
+                  effects: [
+                    {
+                      on: 'hover',
+                      style: {
+                        itemOpacity: 1
+                      }
+                    }
+                  ]
+                }
+              ]}
+              theme={chartTheme}
+              enableGridY={false}
+            />
+          </div>
+        </Card>
+
+        <Card className="p-6">
+          <h3 className="text-lg font-semibold mb-4">Alert Insights</h3>
+          <div className="space-y-4">
+            <div>
+              <h4 className="font-medium mb-2">Current Status</h4>
+              <ul className="list-disc list-inside space-y-1 text-sm">
+                <li>Most alerts from {categories.find(c => c !== 'All' && alerts.filter(a => a.category === c).length === Math.max(...categories.filter(c => c !== 'All').map(c => alerts.filter(a => a.category === c).length)))} category</li>
+                <li>{alerts.filter(a => a.type === 'red').length} critical alerts requiring attention</li>
+                <li>{new Set(alerts.map(a => a.area)).size} distinct areas affected</li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-medium mb-2">Recommendations</h4>
+              <ul className="list-disc list-inside space-y-1 text-sm">
+                <li>Prioritize {alerts.filter(a => a.type === 'red').length > 0 ? 'critical' : 'warning'} alerts</li>
+                <li>Monitor affected areas for escalations</li>
+                <li>Review response protocols for frequent alerts</li>
+              </ul>
+            </div>
+          </div>
+        </Card>
+      </div>
 
       <div className="space-y-4">
         {filteredAlerts.map(alert => {

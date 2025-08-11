@@ -7,7 +7,8 @@ import {
   Bell,
   Settings,
   FileText,
-  ChevronRight
+  ChevronRight,
+  Camera
 } from "lucide-react";
 import { useState } from "react";
 import { useCity } from "@/contexts/CityContext";
@@ -26,6 +27,7 @@ interface NavItem {
 const navItems: NavItem[] = [
   { icon: Clock, label: "DASHBOARD", path: "/dashboard" },
   { icon: MapPin, label: "MAP VIEW", path: "/map" },
+  { icon: Camera, label: "CAMERA MONITORING", path: "/cameras" },
   { icon: Bell, label: "ALERTS", path: "/alerts" },
   { icon: FileText, label: "ANALYTICS", path: "/analytics" },
   { icon: Settings, label: "SETTINGS", path: "/settings" },
