@@ -4,10 +4,52 @@ from car_detection import generate_frames, get_parking_status, detect_ambulance
 import cv2
 import threading
 import time
+from camera_config import get_camera_index, load_camera_config
+
+# Camera detection and configuration is now handled by camera_config.py
 
 class Camera:
     def __init__(self):
-        self.cap = cv2.VideoCapture(0)
+        # Get camera index using the configuration system
+        self.camera_index = get_camera_index()
+
+        print(f"🎥 Attempting to open camera at index {self.camera_index}")
+        self.cap = cv2.VideoCapture(self.camera_index)
+
+        # Configure camera settings
+        if self.cap.isOpened():
+            # Load configuration or use defaults
+            config = load_camera_config()
+            if config:
+                width = config.get('width', 1280)
+                height = config.get('height', 720)
+                fps = config.get('fps', 30)
+            else:
+                width, height, fps = 1280, 720, 30
+
+            # Set camera properties
+            self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, width)
+            self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
+            self.cap.set(cv2.CAP_PROP_FPS, fps)
+
+            # Get actual settings
+            actual_width = int(self.cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+            actual_height = int(self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+            actual_fps = self.cap.get(cv2.CAP_PROP_FPS)
+
+            print(f"✅ Camera initialized: {actual_width}x{actual_height} @ {actual_fps:.1f}fps")
+
+            # Test if camera is working
+            ret, test_frame = self.cap.read()
+            if ret:
+                print(f"✅ Camera test successful - Frame size: {test_frame.shape}")
+            else:
+                print("❌ Camera test failed - Cannot read frames")
+        else:
+            print(f"❌ Failed to open camera at index {self.camera_index}")
+            print("💡 Try running 'python test_cameras.py' to identify available cameras")
+            print("💡 Or run 'python camera_config.py' for interactive setup")
+
         self.lock = threading.Lock()
         self.frame = None
         self.running = True

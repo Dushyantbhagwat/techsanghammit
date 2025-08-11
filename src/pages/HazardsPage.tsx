@@ -1,7 +1,9 @@
+import { HazardsAnalytics } from "@/components/analytics/HazardsAnalytics";
+
 export function HazardsPage() {
   return (
-    <div>
-      {/* Page is intentionally empty */}
+    <div className="p-6">
+      <HazardsAnalytics />
     </div>
   );
 }
