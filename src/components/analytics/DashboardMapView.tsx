@@ -228,7 +228,8 @@ export function DashboardMapView() {
   useEffect(() => {
     const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
     if (!apiKey) {
-      setError('Google Maps API key is not configured');
+      setError('VITE_GOOGLE_MAPS_API_KEY is not defined. Please set it in your .env file.');
+      console.error('VITE_GOOGLE_MAPS_API_KEY is not defined. Please set it in your .env file.');
       return;
     }
 

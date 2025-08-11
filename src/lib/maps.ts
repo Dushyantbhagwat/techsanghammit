@@ -39,7 +39,7 @@ export const initGoogleMaps = async ({ apiKey, onError }: InitOptions): Promise<
 
       // Create and append the script
       const script = document.createElement('script');
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=visualization,webgl&callback=${callbackName}`;
+      script.src = `https://maps.googleapis.com/maps/api/js?key=AIzaSyBuYG7_yoGFjnL3kuJL6QBaPZ8QAx24SMM&libraries=visualization,webgl&callback=${callbackName}`;
       script.async = true;
       script.defer = true;
       script.onerror = () => {
@@ -104,7 +104,6 @@ export const setupPhotorealisticView = (map: google.maps.Map): void => {
     tilt: 45,
     heading: 0,
     zoom: 18,
-    mapId: "90f87356969d889c",  // Custom map ID for photorealistic styling
     disableDefaultUI: false,
     mapTypeControl: true,
     mapTypeControlOptions: {
