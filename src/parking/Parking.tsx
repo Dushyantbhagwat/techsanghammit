@@ -40,13 +40,19 @@ const Parking: React.FC = () => {
           <p>Available Spaces: {availableSpots}</p>
           <div className="mt-4">
             <h3 className="text-lg font-bold">Spots:</h3>
-            <ul>
+            <div className="grid grid-cols-5 grid-rows-2 gap-4 mt-4 h-[350px] w-[600px]">
               {PARKING_SPOTS.map(spot => (
-                <li key={spot.id} style={{ color: occupiedSpots.includes(spot.id) ? 'red' : 'green' }}>
-                  {spot.id}: {occupiedSpots.includes(spot.id) ? 'Occupied' : 'Available'}
-                </li>
+                <div
+                  key={spot.id}
+                  className={`p-4 border rounded-lg text-center ${
+                    occupiedSpots.includes(spot.id) ? 'bg-red-500 text-white' : 'bg-green-500 text-white'
+                  }`}
+                >
+                  <p className="font-bold text-lg">{spot.id}</p>
+                  <p>{occupiedSpots.includes(spot.id) ? 'Occupied' : 'Available'}</p>
+                </div>
               ))}
-            </ul>
+            </div>
           </div>
         </div>
       </div>

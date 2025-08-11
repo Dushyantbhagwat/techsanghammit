@@ -16,7 +16,7 @@ import {
   AlertTriangle,
   Building2,
   Car,
-  Siren
+  Siren,
 } from "lucide-react";
 import { useState } from "react";
 import { useCity } from "@/contexts/CityContext";
@@ -36,8 +36,8 @@ const navItems: NavItem[] = [
   { icon: Clock, label: "DASHBOARD", path: "/dashboard" },
   { icon: MapPin, label: "MAP VIEW", path: "/map" },
   { icon: Camera, label: "CAMERA MONITORING", path: "/cameras" },
-  { icon: Siren, label: "AMBULANCE DETECTION", path: "/ambulance" },
   { icon: Car, label: "PARKING", path: "/parking" },
+  { icon: Siren, label: "AMBULANCE DETECTION", path: "/ambulance" },
   { icon: Bell, label: "ALERTS", path: "/alerts" },
   { icon: Building2, label: "CITY UPDATES", path: "/city-updates" },
   { icon: FileText, label: "ANALYTICS", path: "/analytics" },
@@ -67,6 +67,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
   const navigate = useNavigate();
   const [isAreasExpanded, setIsAreasExpanded] = useState(true);
   const { selectedCity, setSelectedCity } = useCity();
+  const [isParkingExpanded, setIsParkingExpanded] = useState(true);
 
   const handleAlertTypeClick = (severity: string) => {
     navigate(`/alerts?type=${severity}`);
@@ -157,6 +158,31 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                 </div>
               ))}
             </div>
+          </div>
+
+          {/* Parking Availability */}
+          <div className="p-3 border-t border-white/10">
+            <button
+              onClick={() => setIsParkingExpanded(!isParkingExpanded)}
+              className="flex items-center justify-between w-full text-sm font-medium"
+            >
+              <div className="flex items-center gap-2">
+                <Car className="h-4 w-4" />
+                <span>Parking Availability</span>
+              </div>
+              <ChevronDown className={cn(
+                "h-4 w-4 transition-transform",
+                isParkingExpanded && "transform rotate-180"
+              )} />
+            </button>
+            
+            {isParkingExpanded && (
+              <div className="mt-2 ml-6 space-y-0.5">
+                <div className="flex items-center gap-2 px-2 py-1 rounded">
+                  <span className="text-sm">No Parking Available</span>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </aside>

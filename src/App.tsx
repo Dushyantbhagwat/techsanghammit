@@ -14,8 +14,8 @@ import { CityProvider } from "./contexts/CityContext";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 import { MapView } from "./components/analytics/MapView";
 import CameraMonitoringPage from "./pages/CameraMonitoringPage";
-import Parking from './parking/Parking';
 import AmbulanceDetection from './components/analytics/AmbulanceDetection';
+import ParkingPage from './pages/ParkingPage';
 
 function App() {
   return (
@@ -80,9 +80,11 @@ function App() {
             <Route
               path="/parking"
               element={
+                <ProtectedRoute>
                   <Layout>
-                    <Parking />
+                    <ParkingPage />
                   </Layout>
+                </ProtectedRoute>
               }
             />
             <Route

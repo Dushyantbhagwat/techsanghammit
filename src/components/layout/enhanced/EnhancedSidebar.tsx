@@ -23,6 +23,7 @@ import WarningAmberOutlinedIcon from '@mui/icons-material/WarningAmberOutlined';
 import SettingsOutlinedIcon from '@mui/icons-material/SettingsOutlined';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import DirectionsCarOutlinedIcon from '@mui/icons-material/DirectionsCarOutlined';
 
 // Components
 import { SidebarHeader } from './SidebarHeader';
@@ -135,9 +136,14 @@ const navigationItems = [
     label: 'Camera Monitoring', 
     path: '/cameras'
   },
-  { 
-    icon: <NotificationsOutlinedIcon />, 
-    label: 'Alerts', 
+  {
+    icon: <DirectionsCarOutlinedIcon />,
+    label: 'Parking',
+    path: '/parking'
+  },
+  {
+    icon: <NotificationsOutlinedIcon />,
+    label: 'Alerts',
     path: '/alerts'
   },
   { 
