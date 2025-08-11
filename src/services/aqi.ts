@@ -135,7 +135,20 @@ export const fetchEnvironmentalData = async (_city?: string): Promise<Environmen
   const now = new Date();
 
   // 🌐 Fetch real AQI data (you can update coordinates as needed)
-  const { aqi: realAqi, category, pollutants } = await fetchRealAQI(19.0760, 72.8777); // Example: Mumbai
+  let realAqi: number;
+  let category: string;
+  let pollutants: Record<string, number>;
+  try {
+    const res = await fetchRealAQI(19.0760, 72.8777);
+    realAqi = res.aqi;
+    category = res.category;
+    pollutants = res.pollutants;
+  } catch (err) {
+    console.error('fetchRealAQI failed, using fallback:', err);
+    realAqi = Math.round(70 + Math.random() * 30);
+    category = getAqiCategory(realAqi);
+    pollutants = {};
+  }
 
   // 🔁 Simulate past 24-hour data (can later replace with real hourly API)
   const historicalData = generateHistoricalData(now);
