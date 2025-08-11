@@ -7,7 +7,7 @@ import time
 
 class Camera:
     def __init__(self):
-        self.cap = cv2.VideoCapture(0)
+        self.cap = cv2.VideoCapture(1)
         self.lock = threading.Lock()
         self.frame = None
         self.running = True
