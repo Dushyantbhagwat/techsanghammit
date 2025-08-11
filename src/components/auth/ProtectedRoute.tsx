@@ -1,14 +1,15 @@
 import { Navigate, useLocation } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
 
-// Set this to true to bypass authentication
-const DEVELOPMENT_MODE = true;
+// Static credentials check
+const isAuthenticated = () => {
+  const storedEmail = sessionStorage.getItem('userEmail');
+  return storedEmail === 'dbit@gmail.com';
+};
 
 export function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { user } = useAuth();
   const location = useLocation();
 
-  if (!user && !DEVELOPMENT_MODE) {
+  if (!isAuthenticated()) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 

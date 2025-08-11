@@ -62,8 +62,8 @@ function App() {
       <ThemeProvider>
         <CityProvider>
           <Routes>
-            {/* Redirect root to dashboard */}
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            {/* Redirect root to login */}
+            <Route path="/" element={<Navigate to="/login" replace />} />
             
             {/* Protected routes */}
             <Route
