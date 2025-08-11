@@ -231,7 +231,7 @@ export function EnvironmentalAnalytics() {
         </div>
       </Card>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <Card className="p-6 relative">
           <h3 className="text-lg font-semibold mb-2">Current AQI</h3>
           <div className="text-3xl font-bold">{envData.current.aqi.value}</div>
@@ -280,6 +280,27 @@ export function EnvironmentalAnalytics() {
           <h3 className="text-lg font-semibold mb-2">CO₂</h3>
           <div className="text-3xl font-bold">{envData.current.co2} ppm</div>
           <div className="mt-2 text-green-500">Normal</div>
+          <div className="mt-4 text-sm text-gray-500">Updated now</div>
+        </Card>
+
+        <Card className="p-6">
+          <h3 className="text-lg font-semibold mb-2">NO₂</h3>
+          <div className="text-3xl font-bold">{envData.current.aqi.pollutants.no2 || 0} ppb</div>
+          <div className="mt-2 text-blue-500">Nitrogen Dioxide</div>
+          <div className="mt-4 text-sm text-gray-500">Updated now</div>
+        </Card>
+
+        <Card className="p-6">
+          <h3 className="text-lg font-semibold mb-2">SO₂</h3>
+          <div className="text-3xl font-bold">{envData.current.aqi.pollutants.so2 || 0} ppb</div>
+          <div className="mt-2 text-yellow-500">Sulfur Dioxide</div>
+          <div className="mt-4 text-sm text-gray-500">Updated now</div>
+        </Card>
+
+        <Card className="p-6">
+          <h3 className="text-lg font-semibold mb-2">O₃</h3>
+          <div className="text-3xl font-bold">{envData.current.aqi.pollutants.o3 || 0} ppb</div>
+          <div className="mt-2 text-purple-500">Ozone</div>
           <div className="mt-4 text-sm text-gray-500">Updated now</div>
         </Card>
       </div>
@@ -438,6 +459,80 @@ export function EnvironmentalAnalytics() {
               colors={["#6C5DD3"]}
               enableGridX={false}
               enableGridY={false}
+            />
+          </div>
+        </Card>
+
+        <Card className="p-6">
+          <h3 className="text-lg font-semibold mb-4">Air Pollutants</h3>
+          <div className="h-[300px]">
+            <ResponsiveLine
+              data={[
+                {
+                  id: "NO₂",
+                  data: envData.hourly.map(h => ({
+                    x: h.hour,
+                    y: h.aqi.pollutants?.no2 || 0
+                  }))
+                },
+                {
+                  id: "SO₂",
+                  data: envData.hourly.map(h => ({
+                    x: h.hour,
+                    y: h.aqi.pollutants?.so2 || 0
+                  }))
+                },
+                {
+                  id: "O₃",
+                  data: envData.hourly.map(h => ({
+                    x: h.hour,
+                    y: h.aqi.pollutants?.o3 || 0
+                  }))
+                }
+              ]}
+              margin={{ top: 50, right: 20, bottom: 50, left: 60 }}
+              xScale={{ type: "point" }}
+              yScale={{ type: "linear", min: "auto", max: "auto" }}
+              theme={chartTheme}
+              curve="cardinal"
+              axisBottom={{
+                tickSize: 5,
+                tickPadding: 5,
+                tickRotation: -45,
+                legend: "Time (Hours)",
+                legendPosition: "middle",
+                legendOffset: 40
+              }}
+              axisLeft={{
+                tickSize: 5,
+                tickPadding: 5,
+                tickRotation: 0,
+                legend: "Pollutant Level (PPB)",
+                legendPosition: "middle",
+                legendOffset: -50
+              }}
+              enablePoints={true}
+              pointSize={6}
+              pointColor="#ffffff"
+              pointBorderWidth={2}
+              pointBorderColor={{ from: 'color' }}
+              enableArea={false}
+              colors={['#4299E1', '#ECC94B', '#9F7AEA']}
+              enableGridX={false}
+              enableGridY={false}
+              legends={[
+                {
+                  anchor: "top",
+                  direction: "row",
+                  justify: false,
+                  translateY: -40,
+                  itemWidth: 100,
+                  itemHeight: 20,
+                  symbolSize: 10,
+                  symbolShape: "circle",
+                  itemTextColor: "#ffffff"
+                }
+              ]}
             />
           </div>
         </Card>

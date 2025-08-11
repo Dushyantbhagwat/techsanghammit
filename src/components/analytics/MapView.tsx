@@ -3,7 +3,6 @@ import { Card } from '@/components/ui/card';
 import { fetchTrafficData, type LocationTrafficData } from '@/services/traffic';
 import { useCity } from '@/contexts/CityContext';
 
-// Extend Window interface without redeclaring google property
 declare global {
   interface Window {
     initMap: () => void;
@@ -85,10 +84,11 @@ export function MapView() {
     thane: useRef<HTMLDivElement>(null),
     borivali: useRef<HTMLDivElement>(null),
     kharghar: useRef<HTMLDivElement>(null),
-    pune: useRef<HTMLDivElement>(null)
+    pune: useRef<HTMLDivElement>(null),
+    nashik: useRef<HTMLDivElement>(null),
+    panvel: useRef<HTMLDivElement>(null)
   };
 
-  // Convert traffic data to heatmap weights
   const getHeatmapData = (city: string, data: LocationTrafficData): CityMapData => {
     const points = POINTS_OF_INTEREST[city];
     const maxVehicles = data.hourlyData.reduce((max, hour) => 
@@ -97,9 +97,7 @@ export function MapView() {
     return {
       center: CITY_COORDINATES[city],
       heatmapData: points.map((point, index) => {
-        // Calculate weight based on current traffic and point location
         const baseWeight = data.currentTraffic.vehicleCount / maxVehicles;
-        // Add some variation based on point index
         const variation = 0.2 * (Math.sin(index) + 1);
         return {
           location: new google.maps.LatLng(point.lat, point.lng),
@@ -109,7 +107,6 @@ export function MapView() {
     };
   };
 
-  // Fetch traffic data
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -122,11 +119,10 @@ export function MapView() {
     };
 
     fetchData();
-    const interval = setInterval(fetchData, 5 * 60 * 1000); // Update every 5 minutes
+    const interval = setInterval(fetchData, 5 * 60 * 1000);
     return () => clearInterval(interval);
   }, []);
 
-  // Update heatmap data when traffic data changes
   useEffect(() => {
     if (!mapsLoaded || !window.google || trafficData.length === 0) return;
 
@@ -166,53 +162,95 @@ export function MapView() {
           position: google.maps.ControlPosition.TOP_RIGHT
         },
         tilt: 45,
-        heading: 0
+        heading: 0,
+        mapId: 'urbanx_3d_map'
       });
-
-      // Enable WebGL and 3D buildings
-      const webglOverlayView = new google.maps.WebGLOverlayView();
-      webglOverlayView.setMap(map);
 
       // Add Traffic Layer
       const trafficLayer = new google.maps.TrafficLayer();
       trafficLayer.setMap(map);
 
-      // Create markers for points of interest
-      const markers: google.maps.Marker[] = [];
-      POINTS_OF_INTEREST[city].forEach((point, index) => {
+      // Create clickable markers for each point of interest
+      POINTS_OF_INTEREST[city].forEach(point => {
+        // Get traffic data for this location
+        const locationData = trafficData.find(data => data.location === city);
+        const hotspot = locationData?.hotspots.find(h => h.name === point.name);
+        const congestionLevel = hotspot ?
+          hotspot.congestionLevel >= 1.5 ? 'severe' :
+          hotspot.congestionLevel >= 1.2 ? 'high' :
+          hotspot.congestionLevel >= 0.8 ? 'moderate' : 'low'
+          : 'low';
+
+        // Set marker color based on congestion level
+        const congestionColors: Record<string, string> = {
+          low: '#4CAF50',
+          moderate: '#FFC107',
+          high: '#FF9800',
+          severe: '#FF4560'
+        };
+
+        // Generate incident data based on congestion level
+        const incidents = hotspot ? [{
+          type: 'Traffic Congestion',
+          severity: congestionLevel.toUpperCase(),
+          description: `Traffic density: ${Math.round(hotspot.congestionLevel * 100)}%, ${hotspot.vehicleCount} vehicles`
+        }] : [];
+
+        // Create marker with congestion-based styling
         const marker = new google.maps.Marker({
           position: point,
           map: map,
-          title: point.name,
           icon: {
             path: google.maps.SymbolPath.CIRCLE,
-            scale: 10,
-            fillColor: '#FF4560',
+            scale: 15,
+            fillColor: congestionColors[congestionLevel],
             fillOpacity: 0.7,
-            strokeWeight: 2,
+            strokeWeight: 3,
             strokeColor: '#FFFFFF'
           }
         });
-        markers.push(marker);
 
-        // Create info window with live data
+        // Create info window with enhanced content
         const infoWindow = new google.maps.InfoWindow({
           content: `
-            <div class="p-2">
-              <h3 class="font-semibold">${point.name}</h3>
-              <div class="text-sm mt-2">
-                <div class="flex items-center gap-2 mb-1">
-                  <span class="font-medium">Traffic Status:</span>
-                  <span class="text-red-500 animate-pulse">Heavy</span>
-                </div>
-                <div class="flex items-center gap-2">
-                  <span class="font-medium">Crowd Level:</span>
-                  <span class="text-yellow-500 animate-pulse">Moderate</span>
-                </div>
-                <div class="text-xs text-gray-500 mt-2">
-                  Live updates every 5 seconds
-                </div>
+            <div style="
+              background: rgba(0, 0, 0, 0.95);
+              color: white;
+              padding: 12px 16px;
+              border-radius: 8px;
+              font-family: system-ui, -apple-system, sans-serif;
+              box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+              border: 2px solid ${congestionColors[congestionLevel]};
+              text-align: left;
+              min-width: 200px;
+            ">
+              <div style="font-size: 16px; font-weight: bold; margin-bottom: 8px;">
+                ${point.name}
               </div>
+              <div style="
+                display: inline-block;
+                padding: 4px 8px;
+                border-radius: 4px;
+                background: ${congestionColors[congestionLevel]};
+                font-size: 12px;
+                margin-bottom: 8px;
+              ">
+                ${congestionLevel.toUpperCase()} TRAFFIC
+              </div>
+              ${incidents.map((incident: { type: string; severity: string; description: string; }) => `
+                <div style="
+                  margin-top: 8px;
+                  padding: 8px;
+                  background: rgba(255, 255, 255, 0.1);
+                  border-radius: 4px;
+                  font-size: 12px;
+                ">
+                  <div style="color: #FF4560; font-weight: bold; margin-bottom: 4px;">
+                    ${incident.type.toUpperCase()} - ${incident.severity.toUpperCase()}
+                  </div>
+                  <div>${incident.description}</div>
+                </div>
+              `).join('')}
             </div>
           `
         });
@@ -224,104 +262,64 @@ export function MapView() {
             google.maps.event.trigger(m, 'closeclick');
           });
           infoWindow.open(map, marker);
+        });
 
-          // Update info window content every 5 seconds
-          const updateInterval = setInterval(() => {
-            const trafficLevel = Math.random() > 0.5 ? 'Heavy' : 'Moderate';
-            const crowdLevel = Math.random() > 0.5 ? 'High' : 'Moderate';
-            const trafficColor = trafficLevel === 'Heavy' ? 'red' : 'orange';
-            const crowdColor = crowdLevel === 'High' ? 'red' : 'yellow';
+        // Add blinking animation
+        let scale = 15;
+        let opacity = 0.7;
+        let increasing = true;
 
-            infoWindow.setContent(`
-              <div class="p-2">
-                <h3 class="font-semibold">${point.name}</h3>
-                <div class="text-sm mt-2">
-                  <div class="flex items-center gap-2 mb-1">
-                    <span class="font-medium">Traffic Status:</span>
-                    <span class="text-${trafficColor}-500 animate-pulse">${trafficLevel}</span>
-                  </div>
-                  <div class="flex items-center gap-2">
-                    <span class="font-medium">Crowd Level:</span>
-                    <span class="text-${crowdColor}-500 animate-pulse">${crowdLevel}</span>
-                  </div>
-                  <div class="text-xs text-gray-500 mt-2">
-                    Updated just now
-                  </div>
-                </div>
-              </div>
-            `);
-          }, 5000);
+        const markerInterval = setInterval(() => {
+          scale = increasing ? scale + 1 : scale - 1;
+          opacity = increasing ? opacity + 0.05 : opacity - 0.05;
 
-          // Clean up interval when info window is closed
-          google.maps.event.addListener(infoWindow, 'closeclick', () => {
-            clearInterval(updateInterval);
+          if (scale >= 25) increasing = false;
+          if (scale <= 15) increasing = true;
+
+          marker.setIcon({
+            path: google.maps.SymbolPath.CIRCLE,
+            scale: scale,
+            fillColor: '#FF4560',
+            fillOpacity: opacity,
+            strokeWeight: 3,
+            strokeColor: '#FFFFFF'
           });
+        }, 100);
+
+        // Clean up animation interval
+        window.addEventListener('beforeunload', () => {
+          clearInterval(markerInterval);
         });
       });
 
-      // Animate markers with blinking effect
-      let scale = 10;
-      let increasing = true;
-      let opacity = 0.4;
-      let opacityIncreasing = true;
-
-      const markerInterval = setInterval(() => {
-        // Update scale
-        scale = increasing ? scale + 1 : scale - 1;
-        if (scale >= 15) increasing = false;
-        if (scale <= 10) increasing = true;
-
-        // Update opacity for blinking effect
-        opacity = opacityIncreasing ? opacity + 0.1 : opacity - 0.1;
-        if (opacity >= 1) opacityIncreasing = false;
-        if (opacity <= 0.4) opacityIncreasing = true;
-
-        markers.forEach((marker, index) => {
-          // Stagger the animation for each marker
-          setTimeout(() => {
-            marker.setIcon({
-              path: google.maps.SymbolPath.CIRCLE,
-              scale: scale,
-              fillColor: '#FF4560',
-              fillOpacity: opacity,
-              strokeWeight: 2,
-              strokeColor: '#FFFFFF'
-            });
-          }, index * 50);
-        });
-      }, 50);
-
-      // Initialize heatmap with single color gradient and blinking effect
+      // Initialize heatmap with enhanced effect
       const heatmap = new google.maps.visualization.HeatmapLayer({
         data: POINTS_OF_INTEREST[city].map(point => ({
           location: new google.maps.LatLng(point.lat, point.lng),
-          weight: 0.5
+          weight: 0.7 // Increased base weight
         })),
-        radius: 30,
-        opacity: 0.7,
+        radius: 35, // Slightly larger radius
+        opacity: 0.8, // Higher base opacity
         gradient: [
-          'rgba(255, 69, 96, 0)',    // #FF4560 with varying opacity
-          'rgba(255, 69, 96, 0.3)',
-          'rgba(255, 69, 96, 0.5)',
-          'rgba(255, 69, 96, 0.7)',
-          'rgba(255, 69, 96, 0.9)',
+          'rgba(255, 69, 96, 0)',
+          'rgba(255, 69, 96, 0.4)',
+          'rgba(255, 69, 96, 0.6)',
+          'rgba(255, 69, 96, 0.8)',
           'rgba(255, 69, 96, 1.0)'
         ]
       });
       heatmap.setMap(map);
 
-      // Animate heatmap with synchronized blinking
+      // Animate heatmap with enhanced blinking
       const heatmapInterval = setInterval(() => {
-        const opacity = Math.sin(Date.now() / 500) * 0.3 + 0.4; // Range: 0.1 to 0.7
+        const opacity = Math.sin(Date.now() / 300) * 0.4 + 0.6; // Faster and more pronounced blinking
         heatmap.setOptions({ opacity });
-      }, 50);
+      }, 30);
 
-      // Clean up all animation intervals
-      const cleanupIntervals = () => {
-        clearInterval(markerInterval);
+      // Clean up animation interval
+      window.addEventListener('beforeunload', () => {
         clearInterval(heatmapInterval);
-      };
-      window.addEventListener('beforeunload', cleanupIntervals);
+      });
 
       newMaps[city] = map;
       newHeatmaps[city] = heatmap;
@@ -333,13 +331,11 @@ export function MapView() {
   };
 
   useEffect(() => {
-    // Check if Google Maps is already loaded
     if (window.google && window.google.maps) {
       initializeMaps();
       return;
     }
 
-    // Check if script is already being loaded
     const existingScript = document.querySelector('script[src*="maps.googleapis.com"]');
     if (existingScript) {
       return;

@@ -14,6 +14,8 @@ interface CameraData {
   trafficDensity: 'low' | 'medium' | 'high';
   recentDetections: VehicleDetection[];
   imageUrl: string;
+  isOffline?: boolean;
+  offlineMessage?: string;
 }
 
 // Mock traffic camera data
@@ -89,6 +91,17 @@ const trafficCameras: CameraData[] = [
       { vehicleNumber: "MH06UV1234", timestamp: "09:19:25", type: "Bus" },
       { vehicleNumber: "MH06WX5678", timestamp: "09:19:20", type: "Car" },
     ]
+  },
+  {
+    id: 7,
+    location: "Nashik",
+    signalStatus: 'yellow',
+    vehicleCount: 0,
+    trafficDensity: 'low',
+    imageUrl: trafficImages.kurlaSignal,
+    recentDetections: [],
+    isOffline: true,
+    offlineMessage: "Real-Time Traffic & Crowd Analytics not available"
   }
 ];
 

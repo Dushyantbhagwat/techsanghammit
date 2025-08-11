@@ -39,7 +39,7 @@ export const initGoogleMaps = async ({ apiKey, onError }: InitOptions): Promise<
 
       // Create and append the script
       const script = document.createElement('script');
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=visualization&callback=${callbackName}`;
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=visualization,webgl&callback=${callbackName}`;
       script.async = true;
       script.defer = true;
       script.onerror = (error) => {
@@ -86,4 +86,37 @@ export const createTrafficLayer = (): google.maps.TrafficLayer => {
     throw new Error('Google Maps not initialized. Call initGoogleMaps first.');
   }
   return new google.maps.TrafficLayer();
+};
+
+export const setupPhotorealisticView = (map: google.maps.Map): void => {
+  if (!isInitialized || !window.google?.maps) {
+    throw new Error('Google Maps not initialized. Call initGoogleMaps first.');
+  }
+
+  // Enable WebGL mode
+  map.setMapTypeId('satellite');
+
+  // Set tilt and heading for 3D effect
+  map.setTilt(45);
+  
+  // Configure map settings for photorealistic view
+  const mapOptions: google.maps.MapOptions = {
+    tilt: 45,
+    heading: 0,
+    zoom: 18,
+    mapId: "90f87356969d889c",  // Custom map ID for photorealistic styling
+    disableDefaultUI: false,
+    mapTypeControl: true,
+    mapTypeControlOptions: {
+      mapTypeIds: ['roadmap', 'satellite'],
+      style: google.maps.MapTypeControlStyle.DROPDOWN_MENU,
+      position: google.maps.ControlPosition.TOP_RIGHT
+    }
+  };
+  
+  map.setOptions(mapOptions);
+
+  // Enable 3D buildings
+  const webglOverlayView = new google.maps.WebGLOverlayView();
+  webglOverlayView.setMap(map);
 };

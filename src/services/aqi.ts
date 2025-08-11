@@ -52,6 +52,11 @@ export interface EnvironmentalData {
     aqi: {
       value: number;
       category: string;
+      pollutants?: {
+        no2?: number;
+        so2?: number;
+        o3?: number;
+      };
     };
     temperature: number;
     humidity: number;
@@ -304,7 +309,12 @@ export const fetchEnvironmentalData = async (city?: string): Promise<Environment
         hour: `${hour.toString().padStart(2, '0')}:00`,
         aqi: {
           value: hourData.aqi,
-          category: getAqiCategory(hourData.aqi)
+          category: getAqiCategory(hourData.aqi),
+          pollutants: {
+            no2: hourData.iaqi.no2?.v,
+            so2: hourData.iaqi.so2?.v,
+            o3: hourData.iaqi.o3?.v
+          }
         },
         temperature: hourData.iaqi.t?.v || 20,
         humidity: hourData.iaqi.h?.v || 45,

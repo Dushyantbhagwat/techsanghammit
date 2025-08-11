@@ -79,14 +79,43 @@ declare namespace google.maps {
     BOTTOM_RIGHT = 12
   }
 
+  interface WebGLOverlayViewOptions {
+    gl: WebGLRenderingContext;
+    transformer: {
+      fromLatLngAltitude(latLngAlt: { lat: number; lng: number; altitude: number }): { x: number; y: number; z: number } | null;
+      matrix: Float32Array;
+    };
+  }
+
   class WebGLOverlayView {
     constructor();
     setMap(map: Map | null): void;
+    onAdd(options: WebGLOverlayViewOptions): void;
+    onDraw(options: WebGLOverlayViewOptions): void;
+    onRemove(): void;
   }
 
   interface Map {
     setTilt(tilt: number): void;
     setOptions(options: MapOptions): void;
+    getProjection(): Projection;
+    addListener(event: string, handler: Function): MapsEventListener;
+    getBounds(): LatLngBounds;
+    getZoom(): number;
+  }
+
+  interface LatLngBounds {
+    getNorthEast(): LatLng;
+    getSouthWest(): LatLng;
+  }
+
+  interface Projection {
+    fromLatLngToPoint(latLng: LatLng): Point | null;
+  }
+
+  interface Point {
+    x: number;
+    y: number;
   }
 
   interface MapTypeStyle {
