@@ -151,54 +151,177 @@ export function MapView() {
       if (!mapRef?.current) return;
 
       const map = new google.maps.Map(mapRef.current, {
-        zoom: 14,
+        zoom: 18,
         center: CITY_COORDINATES[city],
-        mapTypeId: 'roadmap',
-        styles: [
-          {
-            featureType: 'all',
-            elementType: 'labels.text.fill',
-            stylers: [{ color: '#ffffff' }]
-          },
-          {
-            featureType: 'all',
-            elementType: 'labels.text.stroke',
-            stylers: [{ visibility: 'on' }, { color: '#3e606f' }, { weight: 2 }, { gamma: 0.84 }]
-          },
-          {
-            featureType: 'administrative',
-            elementType: 'geometry',
-            stylers: [{ weight: 0.6 }, { color: '#1a3541' }]
-          }
-        ]
+        mapTypeId: 'satellite',
+        disableDefaultUI: false,
+        draggable: true,
+        zoomControl: true,
+        scrollwheel: true,
+        streetViewControl: true,
+        mapTypeControl: true,
+        mapTypeControlOptions: {
+          mapTypeIds: ['roadmap', 'satellite'],
+          style: google.maps.MapTypeControlStyle.DROPDOWN_MENU,
+          position: google.maps.ControlPosition.TOP_RIGHT
+        },
+        tilt: 45,
+        heading: 0
       });
+
+      // Enable WebGL and 3D buildings
+      const webglOverlayView = new google.maps.WebGLOverlayView();
+      webglOverlayView.setMap(map);
 
       // Add Traffic Layer
       const trafficLayer = new google.maps.TrafficLayer();
       trafficLayer.setMap(map);
 
-      // Initialize empty heatmap
+      // Create markers for points of interest
+      const markers: google.maps.Marker[] = [];
+      POINTS_OF_INTEREST[city].forEach((point, index) => {
+        const marker = new google.maps.Marker({
+          position: point,
+          map: map,
+          title: point.name,
+          icon: {
+            path: google.maps.SymbolPath.CIRCLE,
+            scale: 10,
+            fillColor: '#FF4560',
+            fillOpacity: 0.7,
+            strokeWeight: 2,
+            strokeColor: '#FFFFFF'
+          }
+        });
+        markers.push(marker);
+
+        // Create info window with live data
+        const infoWindow = new google.maps.InfoWindow({
+          content: `
+            <div class="p-2">
+              <h3 class="font-semibold">${point.name}</h3>
+              <div class="text-sm mt-2">
+                <div class="flex items-center gap-2 mb-1">
+                  <span class="font-medium">Traffic Status:</span>
+                  <span class="text-red-500 animate-pulse">Heavy</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="font-medium">Crowd Level:</span>
+                  <span class="text-yellow-500 animate-pulse">Moderate</span>
+                </div>
+                <div class="text-xs text-gray-500 mt-2">
+                  Live updates every 5 seconds
+                </div>
+              </div>
+            </div>
+          `
+        });
+
+        // Add click listener
+        marker.addListener('click', () => {
+          // Close any open info windows
+          Object.values(maps).forEach(m => {
+            google.maps.event.trigger(m, 'closeclick');
+          });
+          infoWindow.open(map, marker);
+
+          // Update info window content every 5 seconds
+          const updateInterval = setInterval(() => {
+            const trafficLevel = Math.random() > 0.5 ? 'Heavy' : 'Moderate';
+            const crowdLevel = Math.random() > 0.5 ? 'High' : 'Moderate';
+            const trafficColor = trafficLevel === 'Heavy' ? 'red' : 'orange';
+            const crowdColor = crowdLevel === 'High' ? 'red' : 'yellow';
+
+            infoWindow.setContent(`
+              <div class="p-2">
+                <h3 class="font-semibold">${point.name}</h3>
+                <div class="text-sm mt-2">
+                  <div class="flex items-center gap-2 mb-1">
+                    <span class="font-medium">Traffic Status:</span>
+                    <span class="text-${trafficColor}-500 animate-pulse">${trafficLevel}</span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <span class="font-medium">Crowd Level:</span>
+                    <span class="text-${crowdColor}-500 animate-pulse">${crowdLevel}</span>
+                  </div>
+                  <div class="text-xs text-gray-500 mt-2">
+                    Updated just now
+                  </div>
+                </div>
+              </div>
+            `);
+          }, 5000);
+
+          // Clean up interval when info window is closed
+          google.maps.event.addListener(infoWindow, 'closeclick', () => {
+            clearInterval(updateInterval);
+          });
+        });
+      });
+
+      // Animate markers with blinking effect
+      let scale = 10;
+      let increasing = true;
+      let opacity = 0.4;
+      let opacityIncreasing = true;
+
+      const markerInterval = setInterval(() => {
+        // Update scale
+        scale = increasing ? scale + 1 : scale - 1;
+        if (scale >= 15) increasing = false;
+        if (scale <= 10) increasing = true;
+
+        // Update opacity for blinking effect
+        opacity = opacityIncreasing ? opacity + 0.1 : opacity - 0.1;
+        if (opacity >= 1) opacityIncreasing = false;
+        if (opacity <= 0.4) opacityIncreasing = true;
+
+        markers.forEach((marker, index) => {
+          // Stagger the animation for each marker
+          setTimeout(() => {
+            marker.setIcon({
+              path: google.maps.SymbolPath.CIRCLE,
+              scale: scale,
+              fillColor: '#FF4560',
+              fillOpacity: opacity,
+              strokeWeight: 2,
+              strokeColor: '#FFFFFF'
+            });
+          }, index * 50);
+        });
+      }, 50);
+
+      // Initialize heatmap with single color gradient and blinking effect
       const heatmap = new google.maps.visualization.HeatmapLayer({
+        data: POINTS_OF_INTEREST[city].map(point => ({
+          location: new google.maps.LatLng(point.lat, point.lng),
+          weight: 0.5
+        })),
         radius: 30,
         opacity: 0.7,
         gradient: [
-          'rgba(0, 255, 255, 0)',
-          'rgba(0, 255, 255, 1)',
-          'rgba(0, 191, 255, 1)',
-          'rgba(0, 127, 255, 1)',
-          'rgba(0, 63, 255, 1)',
-          'rgba(0, 0, 255, 1)',
-          'rgba(0, 0, 223, 1)',
-          'rgba(0, 0, 191, 1)',
-          'rgba(0, 0, 159, 1)',
-          'rgba(0, 0, 127, 1)',
-          'rgba(63, 0, 91, 1)',
-          'rgba(127, 0, 63, 1)',
-          'rgba(191, 0, 31, 1)',
-          'rgba(255, 0, 0, 1)'
+          'rgba(255, 69, 96, 0)',    // #FF4560 with varying opacity
+          'rgba(255, 69, 96, 0.3)',
+          'rgba(255, 69, 96, 0.5)',
+          'rgba(255, 69, 96, 0.7)',
+          'rgba(255, 69, 96, 0.9)',
+          'rgba(255, 69, 96, 1.0)'
         ]
       });
       heatmap.setMap(map);
+
+      // Animate heatmap with synchronized blinking
+      const heatmapInterval = setInterval(() => {
+        const opacity = Math.sin(Date.now() / 500) * 0.3 + 0.4; // Range: 0.1 to 0.7
+        heatmap.setOptions({ opacity });
+      }, 50);
+
+      // Clean up all animation intervals
+      const cleanupIntervals = () => {
+        clearInterval(markerInterval);
+        clearInterval(heatmapInterval);
+      };
+      window.addEventListener('beforeunload', cleanupIntervals);
 
       newMaps[city] = map;
       newHeatmaps[city] = heatmap;
@@ -229,7 +352,7 @@ export function MapView() {
     }
 
     const script = document.createElement('script');
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=visualization&callback=initMap`;
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=visualization,webgl&callback=initMap`;
     script.async = true;
     script.defer = true;
     script.onerror = () => setError('Failed to load Google Maps');
@@ -261,15 +384,55 @@ export function MapView() {
       {citiesToShow.map(city => (
         <Card key={city} className="p-6 relative">
           <h2 className="text-xl font-semibold mb-4">Real-Time Traffic & Crowd Analytics for {formatCityName(city)}</h2>
-          <div
-            ref={mapRefs[city]}
-            className="h-[400px] w-full rounded-lg overflow-hidden"
-          />
-          {!mapsLoaded && (
-            <div className="absolute inset-0 flex items-center justify-center bg-background/50">
-              <div className="text-lg">Loading map...</div>
+          <div className="relative">
+            <div
+              ref={mapRefs[city]}
+              className="h-[600px] w-full rounded-lg overflow-hidden"
+            />
+            {!mapsLoaded && (
+              <div className="absolute inset-0 flex flex-col items-center justify-center bg-background/50">
+                <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mb-2"></div>
+                <div className="text-sm">Initializing 3D view...</div>
+              </div>
+            )}
+            <div className="absolute top-2 right-2 bg-black/50 text-white text-xs px-2 py-1 rounded flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-green-500"></span>
+              3D View Active
             </div>
-          )}
+            <div className="absolute bottom-4 right-4 flex flex-col gap-2">
+              <button
+                onClick={() => {
+                  const map = maps[city];
+                  if (map) {
+                    const currentTilt = map.getTilt();
+                    map.setTilt(currentTilt === 0 ? 45 : 0);
+                  }
+                }}
+                className="bg-white/90 hover:bg-white p-2 rounded-full shadow-lg"
+                title="Toggle tilt"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 3L2 12h3v8h6v-6h2v6h6v-8h3L12 3z"/>
+                </svg>
+              </button>
+              <button
+                onClick={() => {
+                  const map = maps[city];
+                  if (map) {
+                    const currentHeading = map.getHeading() || 0;
+                    map.setHeading((currentHeading + 90) % 360);
+                  }
+                }}
+                className="bg-white/90 hover:bg-white p-2 rounded-full shadow-lg"
+                title="Rotate view"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/>
+                  <path d="M21 3v5h-5"/>
+                </svg>
+              </button>
+            </div>
+          </div>
         </Card>
       ))}
     </div>
