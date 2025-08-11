@@ -7,6 +7,7 @@ import { AlertsPage } from "./pages/AlertsPage";
 import { LoginPage } from "./pages/LoginPage";
 import { SignupPage } from "./pages/SignupPage";
 import { SettingsPage } from "./pages/SettingsPage";
+import { HazardsPage } from "./pages/HazardsPage";
 import { AuthProvider } from "./contexts/AuthContext";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { CityProvider } from "./contexts/CityContext";
@@ -111,6 +112,16 @@ function App() {
                 <ProtectedRoute>
                   <Layout>
                     <AlertsPage />
+                  </Layout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/hazards"
+              element={
+                <ProtectedRoute>
+                  <Layout>
+                    <HazardsPage />
                   </Layout>
                 </ProtectedRoute>
               }

@@ -12,7 +12,8 @@ import {
   Settings,
   FileText,
   ChevronRight,
-  Camera
+  Camera,
+  AlertTriangle
 } from "lucide-react";
 import { useState } from "react";
 import { useCity } from "@/contexts/CityContext";
@@ -34,6 +35,7 @@ const navItems: NavItem[] = [
   { icon: Camera, label: "CAMERA MONITORING", path: "/cameras" },
   { icon: Bell, label: "ALERTS", path: "/alerts" },
   { icon: FileText, label: "ANALYTICS", path: "/analytics" },
+  { icon: AlertTriangle, label: "HAZARDS", path: "/hazards" },
   { icon: Settings, label: "SETTINGS", path: "/settings" },
 ];
 
