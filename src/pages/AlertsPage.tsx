@@ -302,14 +302,14 @@ export function AlertsPage() {
   });
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Alerts</h1>
-        <div className="flex items-center gap-4">
+    <div className="p-3 sm:p-6 space-y-4 sm:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
+        <h1 className="text-2xl sm:text-3xl font-bold">Alerts</h1>
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-4 w-full sm:w-auto">
           <select
             value={selectedType}
             onChange={(e) => handleTypeChange(e.target.value)}
-            className="px-3 py-2 bg-black text-white border border-gray-800 rounded-md text-sm hover:border-gray-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+            className="px-2 sm:px-3 py-1.5 sm:py-2 bg-black text-white border border-gray-800 rounded-md text-xs sm:text-sm hover:border-gray-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
           >
             {types.map(type => (
               <option key={type} value={type} className="bg-black text-white">
@@ -320,7 +320,7 @@ export function AlertsPage() {
           <select
             value={selectedCategory}
             onChange={(e) => handleCategoryChange(e.target.value)}
-            className="px-3 py-2 bg-black text-white border border-gray-800 rounded-md text-sm hover:border-gray-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+            className="px-2 sm:px-3 py-1.5 sm:py-2 bg-black text-white border border-gray-800 rounded-md text-xs sm:text-sm hover:border-gray-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
           >
             {categories.map(category => (
               <option key={category} value={category} className="bg-black text-white">
@@ -331,7 +331,7 @@ export function AlertsPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
         <Card className="p-6">
           <h3 className="text-lg font-semibold mb-2">Active Alerts</h3>
           <div className="text-3xl font-bold">{alerts.length}</div>
@@ -417,10 +417,10 @@ export function AlertsPage() {
         </div>
       </Card>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card className="p-6">
-          <h3 className="text-lg font-semibold mb-4">Alert Distribution by Category</h3>
-          <div className="h-[400px]">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+        <Card className="p-4 sm:p-6">
+          <h3 className="text-base sm:text-lg font-semibold mb-3 sm:mb-4">Alert Distribution by Category</h3>
+          <div className="h-[300px] sm:h-[400px]">
             <ResponsiveBar
               data={[
                 {
@@ -506,14 +506,14 @@ export function AlertsPage() {
           </div>
         </Card>
 
-        <Card className="p-6 bg-gradient-to-br from-black to-gray-900 border border-gray-800">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-lg font-semibold text-white">Alert Insights</h3>
-            <span className="px-3 py-1 text-xs font-medium bg-blue-500/30 text-blue-300 rounded-full">
+        <Card className="p-4 sm:p-6 bg-gradient-to-br from-black to-gray-900 border border-gray-800">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-0 mb-4 sm:mb-6">
+            <h3 className="text-base sm:text-lg font-semibold text-white">Alert Insights</h3>
+            <span className="px-2 sm:px-3 py-1 text-xs font-medium bg-blue-500/30 text-blue-300 rounded-full w-fit">
               Live Analysis
             </span>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
             <div className="space-y-6">
               <div>
                 <h4 className="flex items-center gap-2 font-medium mb-3 text-gray-200">
@@ -608,28 +608,28 @@ export function AlertsPage() {
           const severity = getAlertSeverity(alert.type);
           const Icon = severity.icon;
           return (
-            <Card key={alert.id} className="p-4">
-              <div className="flex items-start gap-4">
-                <div className={`p-2 rounded-lg bg-${severity.color}-100`}>
-                  <Icon className={`h-5 w-5 text-${severity.color}-600`} />
+            <Card key={alert.id} className="p-3 sm:p-4">
+              <div className="flex flex-col sm:flex-row sm:items-start gap-3 sm:gap-4">
+                <div className={`p-2 rounded-lg bg-${severity.color}-100 self-start`}>
+                  <Icon className={`h-4 sm:h-5 w-4 sm:w-5 text-${severity.color}-600`} />
                 </div>
                 <div className="flex-1">
-                  <div className="flex items-center justify-between">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-0">
                     <div>
-                      <h3 className="font-medium">{alert.title}</h3>
-                      <p className="text-sm text-gray-500 mt-1">{alert.description}</p>
+                      <h3 className="text-sm sm:text-base font-medium">{alert.title}</h3>
+                      <p className="text-xs sm:text-sm text-gray-500 mt-1">{alert.description}</p>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <span className={`text-sm px-2 py-1 rounded-full bg-${severity.color}-100 text-${severity.color}-600`}>
+                    <div className="flex items-center gap-2 self-start">
+                      <span className={`text-xs sm:text-sm px-2 py-1 rounded-full bg-${severity.color}-100 text-${severity.color}-600`}>
                         {alert.category}
                       </span>
-                      <div className="flex items-center gap-1 text-sm text-gray-500">
-                        <Clock className="h-4 w-4" />
+                      <div className="flex items-center gap-1 text-xs sm:text-sm text-gray-500">
+                        <Clock className="h-3 sm:h-4 w-3 sm:w-4" />
                         {alert.time}
                       </div>
                     </div>
                   </div>
-                  <div className="mt-2 text-sm text-gray-500">
+                  <div className="mt-2 text-xs sm:text-sm text-gray-500">
                     Location: {alert.area}
                   </div>
                 </div>

@@ -1,11 +1,15 @@
 import { useState, useCallback } from "react";
-import { Search, Sun, Moon, LogOut } from "lucide-react";
+import { Search, Sun, Moon, LogOut, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/contexts/ThemeContext";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 
-export function Header() {
+interface HeaderProps {
+  onSidebarToggle: () => void;
+}
+
+export function Header({ onSidebarToggle }: HeaderProps) {
   const { user, logout } = useAuth();
   const { isDarkMode, toggleDarkMode } = useTheme();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -55,60 +59,59 @@ export function Header() {
   };
 
   return (
-    <header className="fixed top-0 left-0 right-0 h-16 bg-background border-b z-50 flex items-center px-4 transition-colors duration-200">
+    <header className="fixed top-0 left-0 right-0 h-16 bg-background border-b z-50 flex items-center px-2 sm:px-4 transition-colors duration-200">
+      {/* Menu Toggle for Mobile */}
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={onSidebarToggle}
+        className="mr-2 md:hidden"
+      >
+        <Menu className="h-5 w-5" />
+      </Button>
+
       {/* Logo */}
-      <div className="flex items-center gap-2 w-64 h-full pr-4">
-        <span className="font-semibold text-foreground">Urban</span>
+      <div className="flex items-center gap-1 sm:gap-2 w-auto sm:w-64 h-full pr-2 sm:pr-4">
+        <span className="font-semibold text-foreground hidden sm:inline">Urban</span>
         <div className="w-8 h-8 bg-[#6C5DD3] rounded-lg flex items-center justify-center">
           <span className="text-white font-semibold">X</span>
         </div>
       </div>
 
       {/* Search */}
-      <div className="flex-1 flex items-center px-4">
+      <div className="flex-1 flex items-center px-2 sm:px-4">
         <div className="max-w-xl w-full relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Search className="absolute left-2 sm:left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <input
             type="text"
             placeholder="Search"
             value={searchQuery}
             onChange={(e) => handleSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 text-sm bg-muted/50 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6C5DD3] focus:border-transparent text-foreground placeholder:text-muted-foreground"
+            className="w-full pl-8 sm:pl-10 pr-2 sm:pr-4 py-1.5 sm:py-2 text-sm bg-muted/50 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6C5DD3] focus:border-transparent text-foreground placeholder:text-muted-foreground"
           />
         </div>
       </div>
 
       {/* Right Section */}
-      <div className="flex items-center gap-2 pl-4 h-full">
-        {/* Logout Button */}
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={handleLogout}
-          className="rounded-full w-10 h-10 hover:bg-muted"
-          title="Logout"
-        >
-          <LogOut className="h-5 w-5 text-muted-foreground" />
-        </Button>
-
+      <div className="flex items-center gap-1 sm:gap-2 pl-2 sm:pl-4 h-full">
         {/* Dark Mode Toggle */}
         <Button
           variant="ghost"
           size="icon"
           onClick={toggleDarkMode}
-          className="rounded-full w-10 h-10 hover:bg-muted"
+          className="rounded-full w-8 h-8 sm:w-10 sm:h-10 hover:bg-muted"
         >
           {isDarkMode ? (
-            <Sun className="h-5 w-5 text-yellow-500" />
+            <Sun className="h-4 w-4 sm:h-5 sm:w-5 text-yellow-500" />
           ) : (
-            <Moon className="h-5 w-5 text-slate-700" />
+            <Moon className="h-4 w-4 sm:h-5 sm:w-5 text-slate-700" />
           )}
         </Button>
 
         {/* User Profile */}
         <div className="relative">
-          <div 
-            className="flex items-center gap-2 cursor-pointer"
+          <div
+            className="flex items-center gap-1 sm:gap-2 cursor-pointer"
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
           >
             <div className="flex items-center gap-1">
@@ -117,11 +120,11 @@ export function Header() {
                   {user?.displayName ? user.displayName[0].toUpperCase() : user?.email[0].toUpperCase()}
                 </span>
               </div>
-              <span className="text-sm font-medium text-foreground">
+              <span className="hidden sm:inline text-sm font-medium text-foreground">
                 {user?.displayName || user?.email}
               </span>
             </div>
-            <Button variant="ghost" size="sm" className="hover:bg-muted">
+            <Button variant="ghost" size="sm" className="hover:bg-muted hidden sm:flex">
               <svg
                 className={`h-4 w-4 text-muted-foreground transform transition-transform ${
                   isDropdownOpen ? "rotate-180" : ""

@@ -121,11 +121,11 @@ export function AnalyticsPage() {
   };
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Analytics & Reports</h1>
+    <div className="p-3 sm:p-6 space-y-4 sm:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-0">
+        <h1 className="text-2xl sm:text-3xl font-bold">Analytics & Reports</h1>
         <button
-          className="px-4 py-2 bg-[#FF4560] hover:bg-[#FF3550] text-white rounded-lg flex items-center gap-2 transition-colors"
+          className="px-3 sm:px-4 py-1.5 sm:py-2 bg-[#FF4560] hover:bg-[#FF3550] text-white rounded-lg flex items-center justify-center sm:justify-start gap-2 transition-colors text-sm sm:text-base w-full sm:w-auto"
           onClick={() => {
             // Generate report based on active section
             const generateReport = () => {
@@ -225,12 +225,12 @@ export function AnalyticsPage() {
         </button>
       </div>
 
-      <Card className="p-1">
-        <div className="flex items-center bg-[#F4F7FE] rounded-lg p-1">
+      <Card className="p-1 overflow-x-auto">
+        <div className="flex items-center bg-[#F4F7FE] rounded-lg p-1 min-w-max">
           {sections.map((section) => (
             <button
               key={section.id}
-              className={`px-6 py-2 rounded-lg text-sm font-medium transition-colors ${
+              className={`px-3 sm:px-6 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors whitespace-nowrap ${
                 activeSection === section.id
                   ? "bg-[#6C5DD3] text-white shadow-sm"
                   : "text-gray-500 hover:text-gray-700"
@@ -244,7 +244,7 @@ export function AnalyticsPage() {
       </Card>
 
       {/* Analytics Content */}
-      <div className="mt-6">
+      <div className="mt-4 sm:mt-6">
         {renderAnalytics()}
       </div>
     </div>

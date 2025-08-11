@@ -169,9 +169,9 @@ export function DashboardPage() {
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-3 sm:p-6 space-y-4 sm:space-y-6">
       {/* Top Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
         <MetricCard
           icon={<Lightbulb className="h-8 w-8 text-[#6C5DD3]" />}
           title="Total lights"
@@ -218,15 +218,15 @@ export function DashboardPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* AQI Graph */}
-        <Card className="p-6">
-          <div className="flex items-center justify-between mb-8">
+        <Card className="p-4 sm:p-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 sm:gap-0 mb-6 sm:mb-8">
             <div>
-              <h3 className="text-lg font-semibold">Air Quality Index</h3>
-              <p className="text-sm text-gray-500 mt-1">
+              <h3 className="text-base sm:text-lg font-semibold">Air Quality Index</h3>
+              <p className="text-xs sm:text-sm text-gray-500 mt-1">
                 Current AQI: {environmentalData?.current.aqi.value} ({environmentalData?.current.aqi.category})
               </p>
             </div>
-            <div className="flex items-center bg-[#F4F7FE] rounded-lg p-1">
+            <div className="flex items-center justify-center sm:justify-end bg-[#F4F7FE] rounded-lg p-1 w-full sm:w-auto">
               {[
                 { id: "DAY", label: "24H" },
                 { id: "WK", label: "Week" },
@@ -235,7 +235,7 @@ export function DashboardPage() {
               ].map((tab) => (
                 <button
                   key={tab.id}
-                  className={`px-6 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  className={`px-3 sm:px-6 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors flex-1 sm:flex-none ${
                     activeTab === tab.id
                       ? "bg-[#6C5DD3] text-white shadow-sm"
                       : "text-gray-500 hover:text-gray-700"
@@ -320,17 +320,17 @@ export function DashboardPage() {
       </div>
 
       {/* Environmental Data */}
-      <Card className="p-6">
-        <div className="flex items-center justify-between mb-6">
-          <h3 className="text-lg font-semibold">Environmental data</h3>
+      <Card className="p-4 sm:p-6">
+        <div className="flex items-center justify-between mb-4 sm:mb-6">
+          <h3 className="text-base sm:text-lg font-semibold">Environmental data</h3>
           <button
-            className="text-sm text-[#6C5DD3] hover:underline"
+            className="text-xs sm:text-sm text-[#6C5DD3] hover:underline"
             onClick={() => window.location.href = '/analytics?section=environmental'}
           >
             Read more
           </button>
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-8">
           <div className="space-y-2">
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-[#6C5DD3]" />
@@ -363,19 +363,19 @@ export function DashboardPage() {
       </Card>
 
       {/* Parking Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         {/* Parking Occupancy */}
-        <Card className="p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold">Parking occupancy</h3>
+        <Card className="p-4 sm:p-6">
+          <div className="flex items-center justify-between mb-3 sm:mb-4">
+            <h3 className="text-base sm:text-lg font-semibold">Parking occupancy</h3>
             <button
-              className="text-sm text-[#6C5DD3] hover:underline"
+              className="text-xs sm:text-sm text-[#6C5DD3] hover:underline"
               onClick={() => window.location.href = '/analytics?section=parking'}
             >
               Read more
             </button>
           </div>
-          <div className="h-[200px]">
+          <div className="h-[180px] sm:h-[200px]">
             <ResponsivePie
               data={[
                 {
@@ -418,16 +418,16 @@ export function DashboardPage() {
         </Card>
 
         {/* Parking Locations */}
-        <Card className="p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold">Parking Locations</h3>
+        <Card className="p-4 sm:p-6">
+          <div className="flex items-center justify-between mb-3 sm:mb-4">
+            <h3 className="text-base sm:text-lg font-semibold">Parking Locations</h3>
           </div>
-          <div className="space-y-4 max-h-[400px] overflow-y-auto">
+          <div className="space-y-3 sm:space-y-4 max-h-[350px] sm:max-h-[400px] overflow-y-auto">
             {locationParkingData.map((location, index) => (
-              <div key={index} className="p-4 bg-gray-800 rounded-lg">
-                <div className="flex justify-between items-center mb-2">
-                  <h4 className="font-medium">{location.name}</h4>
-                  <span className={`px-2 py-1 rounded text-sm ${
+              <div key={index} className="p-3 sm:p-4 bg-gray-800 rounded-lg">
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 sm:gap-0 mb-2">
+                  <h4 className="text-sm sm:text-base font-medium">{location.name}</h4>
+                  <span className={`px-2 py-1 rounded text-xs sm:text-sm w-fit ${
                     location.occupancyRate > 80 ? 'bg-red-500/20 text-red-500' :
                     location.occupancyRate > 50 ? 'bg-yellow-500/20 text-yellow-500' :
                     'bg-green-500/20 text-green-500'
@@ -435,7 +435,7 @@ export function DashboardPage() {
                     {location.occupancyRate}% Full
                   </span>
                 </div>
-                <div className="flex justify-between text-sm text-gray-400">
+                <div className="flex flex-col sm:flex-row sm:justify-between text-xs sm:text-sm text-gray-400 gap-1 sm:gap-0">
                   <span>{location.occupiedSpaces} / {location.totalSpaces} spots</span>
                   <span>{location.totalSpaces - location.occupiedSpaces} available</span>
                 </div>

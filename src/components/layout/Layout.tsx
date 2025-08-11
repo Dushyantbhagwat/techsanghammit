@@ -13,12 +13,14 @@ export function Layout({ children }: LayoutProps) {
 
   return (
     <div className={`min-h-screen bg-background text-foreground transition-colors duration-200 ${isDarkMode ? 'dark' : ''}`}>
-      <Header />
+      <Header onSidebarToggle={() => setIsSidebarOpen(!isSidebarOpen)} />
       <Sidebar isOpen={isSidebarOpen} onToggle={() => setIsSidebarOpen(!isSidebarOpen)} />
       <main
-        className={`pt-16 transition-all duration-300 ${
-          isSidebarOpen ? "pl-64" : "pl-0"
-        }`}
+        className={`pt-16 transition-all duration-300
+          ${isSidebarOpen ? "md:pl-64" : "pl-0"}
+          px-4 md:px-6 lg:px-8
+          ${isSidebarOpen ? "sm:pl-0 md:pl-64" : "pl-0"}
+        `}
       >
         {children}
       </main>

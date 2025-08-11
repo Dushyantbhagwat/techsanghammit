@@ -243,21 +243,21 @@ export function VoiceAssistant({ data }: VoiceAssistantProps) {
   }
 
   return (
-    <Card className="p-4 hover:shadow-lg transition-shadow">
-      <div className="flex items-center justify-between">
+    <Card className="p-3 sm:p-4 hover:shadow-lg transition-shadow">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-0">
         <div>
-          <h3 className="text-lg font-semibold">Voice Assistant</h3>
-          <p className="text-sm text-gray-500">
-            {isVoiceReady 
-              ? "Click to hear city status update" 
+          <h3 className="text-base sm:text-lg font-semibold">Voice Assistant</h3>
+          <p className="text-xs sm:text-sm text-gray-500">
+            {isVoiceReady
+              ? "Click to hear city status update"
               : "Initializing voice..."}
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 self-end sm:self-auto">
           <select
             value={selectedLanguage}
             onChange={(e) => setSelectedLanguage(e.target.value as Language)}
-            className="px-3 py-2 bg-black text-white border border-gray-800 rounded-md text-sm hover:border-gray-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-2 sm:px-3 py-1.5 sm:py-2 bg-black text-white border border-gray-800 rounded-md text-xs sm:text-sm hover:border-gray-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
             disabled={isSpeaking}
           >
             <option value="en" className="bg-black text-white">English</option>
@@ -267,21 +267,21 @@ export function VoiceAssistant({ data }: VoiceAssistantProps) {
           <button
             onClick={toggleSpeech}
             disabled={!isVoiceReady}
-            className={`p-3 rounded-full transition-colors ${
-              !isVoiceReady 
+            className={`p-2 sm:p-3 rounded-full transition-colors ${
+              !isVoiceReady
                 ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                : isSpeaking 
-                  ? 'bg-red-100 text-red-600 hover:bg-red-200' 
+                : isSpeaking
+                  ? 'bg-red-100 text-red-600 hover:bg-red-200'
                   : 'bg-blue-100 text-blue-600 hover:bg-blue-200'
             }`}
             aria-label={isSpeaking ? 'Stop speaking' : 'Start speaking'}
           >
-            {isSpeaking ? <VolumeX className="h-6 w-6" /> : <Volume2 className="h-6 w-6" />}
+            {isSpeaking ? <VolumeX className="h-5 sm:h-6 w-5 sm:w-6" /> : <Volume2 className="h-5 sm:h-6 w-5 sm:w-6" />}
           </button>
         </div>
       </div>
-      <div className="mt-4 text-sm">
-        <div className="space-y-2">
+      <div className="mt-3 sm:mt-4 text-xs sm:text-sm">
+        <div className="space-y-1.5 sm:space-y-2">
           <div className="flex justify-between">
             <span className="text-gray-500">Traffic Status:</span>
             <span className={`font-medium ${
