@@ -7,17 +7,35 @@ export function HomePage() {
     {
       title: "Air Quality Index",
       value: "65",
-      status: { label: "Moderate", type: "moderate" as const }
+      details: [
+        { 
+          label: "Status",
+          value: "Moderate",
+          color: "text-amber-500"
+        }
+      ]
     },
     {
       title: "Traffic Congestion",
       value: "35%",
-      status: { label: "Low", type: "success" as const }
+      details: [
+        {
+          label: "Status",
+          value: "Low",
+          color: "text-green-500"
+        }
+      ]
     },
     {
       title: "Active Alerts",
       value: "2",
-      status: { label: "Warning", type: "warning" as const }
+      details: [
+        {
+          label: "Status",
+          value: "Warning",
+          color: "text-red-500"
+        }
+      ]
     }
   ]
 
@@ -29,7 +47,8 @@ export function HomePage() {
             key={index}
             title={metric.title}
             value={metric.value}
-            status={metric.status}
+            details={metric.details}
+            icon={<div className="h-8 w-8 bg-[#6C5DD3]/10 rounded-full" />}
           />
         ))}
       </div>

@@ -1,6 +1,6 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
+import { Firestore, getFirestore as _getFirestore } from 'firebase/firestore/lite';
 import { getAnalytics } from 'firebase/analytics';
 
 // Firebase configuration
@@ -19,7 +19,7 @@ const firebaseApp = initializeApp(firebaseConfig);
 
 // Initialize services
 const auth = getAuth(firebaseApp);
-const db = getFirestore(firebaseApp);
+const db: Firestore = _getFirestore(firebaseApp);
 const analytics = typeof window !== 'undefined' ? getAnalytics(firebaseApp) : null;
 
 // Export instances

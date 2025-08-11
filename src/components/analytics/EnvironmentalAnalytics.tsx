@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { ResponsiveLine } from "@nivo/line";
 import { ResponsiveBar } from "@nivo/bar";
-import { fetchEnvironmentalData, type EnvironmentalData, getAqiCategory } from "@/services/aqi";
+import { fetchEnvironmentalData, type EnvironmentalData } from "@/services/aqi";
 import { useCity } from "@/contexts/CityContext";
 import { ArrowUpIcon, ArrowDownIcon, ArrowRightIcon } from "@heroicons/react/24/solid";
 
@@ -161,6 +161,24 @@ export function EnvironmentalAnalytics() {
     }
   };
 
+  // Helper function to get pollutant value with fallback
+  const getPollutantValue = (pollutant: keyof EnvironmentalData['current']['aqi']['pollutants']) => {
+    return envData.current.aqi.pollutants[pollutant] ?? 0;
+  };
+
+  // Helper function to determine primary pollutant
+  const getPrimaryPollutant = () => {
+    const pollutants = envData.current.aqi.pollutants;
+    const values = {
+      'PM2.5': pollutants.pm25 ?? 0,
+      'NO2': pollutants.no2 ?? 0,
+      'SO2': pollutants.so2 ?? 0,
+      'O3': pollutants.o3 ?? 0
+    };
+    
+    return Object.entries(values).reduce((a, b) => a[1] > b[1] ? a : b)[0];
+  };
+
   return (
     <div className="space-y-6">
       <Card className="p-6">
@@ -296,12 +314,12 @@ export function EnvironmentalAnalytics() {
 
         <Card className="p-6 bg-gradient-to-br from-blue-500/10 to-blue-600/5">
           <h3 className="text-lg font-semibold mb-2">NO₂ Levels</h3>
-          <div className="text-4xl font-bold">{envData.current.aqi.pollutants.no2 || 0} ppb</div>
+          <div className="text-4xl font-bold">{getPollutantValue('no2')} ppb</div>
           <div className="mt-2 text-blue-400">
             Nitrogen Dioxide
             <span className="ml-2 text-sm">
-              {envData.current.aqi.pollutants.no2 > 100 ? '(High)' :
-               envData.current.aqi.pollutants.no2 > 50 ? '(Moderate)' : '(Normal)'}
+              {getPollutantValue('no2') > 100 ? '(High)' :
+               getPollutantValue('no2') > 50 ? '(Moderate)' : '(Normal)'}
             </span>
           </div>
           <div className="mt-4 text-sm text-gray-400">Real-time monitoring</div>
@@ -309,12 +327,12 @@ export function EnvironmentalAnalytics() {
 
         <Card className="p-6 bg-gradient-to-br from-yellow-500/10 to-yellow-600/5">
           <h3 className="text-lg font-semibold mb-2">SO₂ Levels</h3>
-          <div className="text-4xl font-bold">{envData.current.aqi.pollutants.so2 || 0} ppb</div>
+          <div className="text-4xl font-bold">{getPollutantValue('so2')} ppb</div>
           <div className="mt-2 text-yellow-400">
             Sulfur Dioxide
             <span className="ml-2 text-sm">
-              {envData.current.aqi.pollutants.so2 > 75 ? '(High)' :
-               envData.current.aqi.pollutants.so2 > 35 ? '(Moderate)' : '(Normal)'}
+              {getPollutantValue('so2') > 75 ? '(High)' :
+               getPollutantValue('so2') > 35 ? '(Moderate)' : '(Normal)'}
             </span>
           </div>
           <div className="mt-4 text-sm text-gray-400">Real-time monitoring</div>
@@ -322,12 +340,12 @@ export function EnvironmentalAnalytics() {
 
         <Card className="p-6 bg-gradient-to-br from-purple-500/10 to-purple-600/5">
           <h3 className="text-lg font-semibold mb-2">O₃ Levels</h3>
-          <div className="text-4xl font-bold">{envData.current.aqi.pollutants.o3 || 0} ppb</div>
+          <div className="text-4xl font-bold">{getPollutantValue('o3')} ppb</div>
           <div className="mt-2 text-purple-400">
             Ozone
             <span className="ml-2 text-sm">
-              {envData.current.aqi.pollutants.o3 > 70 ? '(High)' :
-               envData.current.aqi.pollutants.o3 > 50 ? '(Moderate)' : '(Normal)'}
+              {getPollutantValue('o3') > 70 ? '(High)' :
+               getPollutantValue('o3') > 50 ? '(Moderate)' : '(Normal)'}
             </span>
           </div>
           <div className="mt-4 text-sm text-gray-400">Real-time monitoring</div>
@@ -501,21 +519,21 @@ export function EnvironmentalAnalytics() {
                   id: "NO₂",
                   data: envData.hourly.map(h => ({
                     x: h.hour,
-                    y: h.aqi.pollutants?.no2 || 0
+                    y: h.aqi.pollutants?.no2 ?? 0
                   }))
                 },
                 {
                   id: "SO₂",
                   data: envData.hourly.map(h => ({
                     x: h.hour,
-                    y: h.aqi.pollutants?.so2 || 0
+                    y: h.aqi.pollutants?.so2 ?? 0
                   }))
                 },
                 {
                   id: "O₃",
                   data: envData.hourly.map(h => ({
                     x: h.hour,
-                    y: h.aqi.pollutants?.o3 || 0
+                    y: h.aqi.pollutants?.o3 ?? 0
                   }))
                 }
               ]}
@@ -577,17 +595,9 @@ export function EnvironmentalAnalytics() {
                 <div className="flex justify-between items-center">
                   <span>Primary Pollutant</span>
                   <span className="font-medium" style={{
-                    color: getAqiColor(
-                      envData.current.aqi.pollutants[
-                        envData.current.aqi.pollutants.pm25 ? 'pm25' :
-                        envData.current.aqi.pollutants.no2 ? 'no2' :
-                        envData.current.aqi.pollutants.so2 ? 'so2' : 'o3'
-                      ]
-                    )
+                    color: getAqiColor(getPollutantValue(getPrimaryPollutant().toLowerCase() as keyof EnvironmentalData['current']['aqi']['pollutants']))
                   }}>
-                    {envData.current.aqi.pollutants.pm25 ? 'PM2.5' :
-                     envData.current.aqi.pollutants.no2 ? 'NO2' :
-                     envData.current.aqi.pollutants.so2 ? 'SO2' : 'O3'}
+                    {getPrimaryPollutant()}
                   </span>
                 </div>
                 <div className="flex justify-between items-center">

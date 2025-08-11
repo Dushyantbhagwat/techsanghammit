@@ -52,14 +52,12 @@ export function AnalyticsPage() {
   const [parkingData, setParkingData] = useState<LocationParkingData | null>(null);
   const [streetLightData, setStreetLightData] = useState<StreetLightData | null>(null);
   const [securityData, setSecurityData] = useState<SecurityData | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
 
   // Fetch data for the active section
   useEffect(() => {
     const fetchSectionData = async () => {
       if (!selectedCity) return;
 
-      setIsLoading(true);
       try {
         switch (activeSection) {
           case 'traffic':
@@ -85,8 +83,6 @@ export function AnalyticsPage() {
         }
       } catch (error) {
         console.error(`Error fetching ${activeSection} data:`, error);
-      } finally {
-        setIsLoading(false);
       }
     };
 

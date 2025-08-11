@@ -61,14 +61,6 @@ export function DashboardMapView() {
     panvel: useRef<HTMLDivElement>(null)
   };
 
-  const debounce = (func: Function, wait: number) => {
-    let timeout: NodeJS.Timeout;
-    return (...args: any[]) => {
-      clearTimeout(timeout);
-      timeout = setTimeout(() => func(...args), wait);
-    };
-  };
-
   const processCityData = (
     city: string,
     trafficData: LocationTrafficData,

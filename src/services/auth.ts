@@ -1,10 +1,8 @@
 import { User, UserCredentials } from '../types/user';
 import { auth, db } from '../lib/firebase';
 import {
-  signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signOut,
-  onAuthStateChanged,
   User as AuthUser
 } from 'firebase/auth';
 import {
@@ -66,27 +64,19 @@ export const authService = {
   },
 
   async login({ email, password }: UserCredentials): Promise<User> {
-    // Return mock user for testing
-    return {
-      id: '1',
-      email: email,
-      displayName: 'Test User',
-      userName: 'testuser',
-      preferences: { notifications: true },
-      createdAt: new Date()
-    };
+    try {
+      const userCredential = await auth.signInWithEmailAndPassword(email, password);
+      return await convertToUser(userCredential.user);
+    } catch (error) {
+      console.error('Login error:', error);
+      throw error;
+    }
   },
 
   async getCurrentUser(): Promise<User | null> {
-    // Return mock user for testing
-    return {
-      id: '1',
-      email: 'test@example.com',
-      displayName: 'Test User',
-      userName: 'testuser',
-      preferences: { notifications: true },
-      createdAt: new Date()
-    };
+    const currentUser = auth.currentUser;
+    if (!currentUser) return null;
+    return await convertToUser(currentUser);
   },
 
   async updateUser(

@@ -1,4 +1,4 @@
-    let isInitialized = false;
+let isInitialized = false;
 let isInitializing = false;
 let initPromise: Promise<void> | null = null;
 
@@ -42,7 +42,7 @@ export const initGoogleMaps = async ({ apiKey, onError }: InitOptions): Promise<
       script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=visualization,webgl&callback=${callbackName}`;
       script.async = true;
       script.defer = true;
-      script.onerror = (error) => {
+      script.onerror = () => {
         isInitializing = false;
         delete window[callbackName];
         const err = new Error('Failed to load Google Maps API');

@@ -3,38 +3,7 @@ import { Card } from "@/components/ui/card";
 import { ResponsiveLine } from "@nivo/line";
 import { ResponsiveBar } from "@nivo/bar";
 import { useCity } from "@/contexts/CityContext";
-import { fetchStreetLightData } from "@/services/streetlight";
-import type { StreetLightData } from "@/services/streetlight";
-
-interface StreetLightData {
-  location: string;
-  current: {
-    totalLights: number;
-    activeLights: number;
-    faultyLights: number;
-    energyConsumption: number;
-    timestamp: string;
-  };
-  hourly: Array<{
-    hour: string;
-    activeCount: number;
-    energyUsage: number;
-  }>;
-  faultReport: Array<{
-    zone: string;
-    count: number;
-    status: 'critical' | 'moderate' | 'minor';
-  }>;
-  energyStats: {
-    daily: number;
-    weekly: number;
-    monthly: number;
-    yearlyComparison: Array<{
-      year: number;
-      consumption: number;
-    }>;
-  };
-}
+import { fetchStreetLightData, type StreetLightData } from "@/services/streetlight";
 
 const chartTheme = {
   textColor: "#ffffff",

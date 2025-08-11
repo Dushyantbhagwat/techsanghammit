@@ -159,11 +159,12 @@ class AQIPredictor {
     }
   }
 
-  async trainModel(historicalData: number[]): Promise<tf.History | undefined> {
+  async trainModel(historicalData: number[]): Promise<tf.History> {
     if (!this.model) {
       await this.initModel();
     }
 
+    let tensors: [tf.Tensor2D, tf.Tensor2D] | null = null;
     try {
       this.validateData(historicalData);
 
@@ -174,44 +175,30 @@ class AQIPredictor {
         dataStats: this.calculateDataStats(historicalData)
       };
 
-      // Use tf.tidy to automatically clean up tensors
-      return await tf.tidy(async () => {
-        const normalizedData = this.normalize(historicalData);
-        const [X, y] = this.prepareData(normalizedData);
+      const normalizedData = this.normalize(historicalData);
+      tensors = this.prepareData(normalizedData);
+      const [xTensor, yTensor] = tensors;
 
-        const history = await this.model!.fit(X, y, {
-          epochs: 5,
-          batchSize: this.batchSize,
-          shuffle: true,
-          validationSplit: 0.2,
-          callbacks: {
-            onBatchEnd: async () => await tf.nextFrame()
-          }
-        });
-
-        if (history.history.loss) {
-          const lastLoss = history.history.loss[history.history.loss.length - 1];
-          this.metadata!.metrics = {
-            loss: typeof lastLoss === 'number' ? lastLoss : 1,
-            validationLoss: 0
-          };
+      // Train the model
+      const result = await this.model!.fit(xTensor, yTensor, {
+        epochs: 5,
+        batchSize: this.batchSize,
+        shuffle: true,
+        validationSplit: 0.2,
+        callbacks: {
+          onBatchEnd: async () => await tf.nextFrame()
         }
-
-        return history;
       });
-    } catch (error) {
-      console.warn('Error in trainModel:', error);
-      return undefined;
-    }
-  }
 
-    try {
       // Update metadata with training results
-      if (history.history.loss) {
-        const lastLoss = history.history.loss[history.history.loss.length - 1];
-        this.metadata!.metrics = {
+      if (result.history.loss) {
+        const lastLoss = result.history.loss[result.history.loss.length - 1];
+        const lastValLoss = result.history.val_loss ? 
+          result.history.val_loss[result.history.val_loss.length - 1] : 0;
+        
+        this.metadata.metrics = {
           loss: typeof lastLoss === 'number' ? lastLoss : 1,
-          validationLoss: history.history.val_loss?.[history.history.val_loss.length - 1] || 0
+          validationLoss: typeof lastValLoss === 'number' ? lastValLoss : 0
         };
       }
 
@@ -220,11 +207,16 @@ class AQIPredictor {
         console.warn('Failed to save model:', err)
       );
 
-      return history;
+      return result;
+    } catch (error) {
+      console.warn('Error in trainModel:', error);
+      throw error;
     } finally {
       // Clean up tensors
-      trainTensors.X.dispose();
-      trainTensors.y.dispose();
+      if (tensors) {
+        tensors[0].dispose();
+        tensors[1].dispose();
+      }
     }
   }
 
@@ -251,8 +243,7 @@ class AQIPredictor {
         const input = tf.tensor2d([sequence]);
 
         // Make prediction
-        const normalizedPrediction = this.model!.predict(input) as tf.Tensor;
-        return normalizedPrediction;
+        return this.model!.predict(input) as tf.Tensor;
       });
 
       try {

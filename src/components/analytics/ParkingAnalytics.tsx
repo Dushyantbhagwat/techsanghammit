@@ -1,29 +1,7 @@
 import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
-import { ResponsiveLine } from "@nivo/line";
-import { ResponsiveBar } from "@nivo/bar";
 import { useCity } from "@/contexts/CityContext";
 import { fetchParkingData, type LocationParkingData } from "@/services/parking";
-
-const chartTheme = {
-  textColor: "#ffffff",
-  axis: {
-    domain: { line: { stroke: "#ffffff" } },
-    ticks: {
-      line: { stroke: "#ffffff" },
-      text: { fill: "#ffffff", fontSize: 12, fontWeight: 600 }
-    },
-    legend: {
-      text: { fill: "#ffffff", fontSize: 14, fontWeight: 600 }
-    }
-  },
-  grid: {
-    line: { stroke: "#ffffff", strokeOpacity: 0.1 }
-  },
-  legends: {
-    text: { fill: "#ffffff", fontSize: 12 }
-  }
-};
 
 export function ParkingAnalytics() {
   const [parkingData, setParkingData] = useState<LocationParkingData | null>(null);

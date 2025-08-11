@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { fetchTrafficData, type LocationTrafficData } from '@/services/traffic';
-import { useCity } from '@/contexts/CityContext';
 
 declare global {
   interface Window {
@@ -73,7 +72,6 @@ const POINTS_OF_INTEREST: Record<string, Array<{ name: string } & google.maps.La
 };
 
 export function MapView() {
-  const { selectedCity } = useCity();
   const [trafficData, setTrafficData] = useState<LocationTrafficData[]>([]);
   const [mapsLoaded, setMapsLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);

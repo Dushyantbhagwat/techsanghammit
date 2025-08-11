@@ -1,8 +1,3 @@
-interface Location {
-  latitude: number;
-  longitude: number;
-}
-
 export interface SecurityData {
   current: {
     activeAlerts: number;
@@ -28,12 +23,6 @@ export interface SecurityData {
   }>;
 }
 
-const LOCATIONS: Record<string, Location> = {
-  "Thane": { latitude: 19.2183, longitude: 72.9783 },
-  "Borivali": { latitude: 19.2301, longitude: 72.8507 },
-  "Kalyan": { latitude: 19.2432, longitude: 73.1356 }
-};
-
 const ZONES: Record<string, string[]> = {
   "Thane": ["Central", "Station", "Market", "Lake City"],
   "Borivali": ["National Park", "Station", "Market", "IC Colony"],
@@ -50,10 +39,9 @@ const INCIDENT_TYPES = [
 ];
 
 // Generate realistic hourly data based on time patterns
-const generateHourlyData = (baseCount: number, timestamp: Date) => {
+const generateHourlyData = (baseCount: number) => {
   return Array.from({ length: 24 }, (_, hour) => {
     let multiplier = 1;
-    const currentHour = timestamp.getHours();
 
     // More incidents during rush hours
     if (hour >= 8 && hour <= 10) multiplier = 1.5;
@@ -90,7 +78,7 @@ const calculateRiskLevel = (incidentCount: number, totalCameras: number, activeC
 // Generate mock security data with realistic patterns
 const generateMockData = (location: string, timestamp: Date): SecurityData => {
   const baseAlertCount = 8; // Base number of alerts per hour
-  const hourlyData = generateHourlyData(baseAlertCount, timestamp);
+  const hourlyData = generateHourlyData(baseAlertCount);
   
   // Calculate current hour's data
   const currentHourData = hourlyData[timestamp.getHours()];

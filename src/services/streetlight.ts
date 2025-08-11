@@ -1,4 +1,4 @@
-interface StreetLightData {
+export interface StreetLightData {
   location: string;
   current: {
     totalLights: number;

@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { Card } from "@/components/ui/card";
-import { Volume2, VolumeX, Globe } from 'lucide-react';
+import { Volume2, VolumeX } from 'lucide-react';
 
 interface VoiceAssistantProps {
   data: {
