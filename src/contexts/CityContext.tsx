@@ -4,15 +4,15 @@ const CITIES = ["thane", "borivali", "kharghar", "pune", "nashik", "panvel"] as 
 type City = typeof CITIES[number];
 
 interface CityContextType {
-  selectedCity: City;
-  setSelectedCity: (city: City) => void;
+  selectedCity: string;
+  setSelectedCity: (city: string) => void;
   availableCities: readonly City[];
 }
 
 const CityContext = createContext<CityContextType | undefined>(undefined);
 
 export function CityProvider({ children }: { children: ReactNode }) {
-  const [selectedCity, setSelectedCity] = useState<City>('pune');
+  const [selectedCity, setSelectedCity] = useState<string>('pune');
 
   return (
     <CityContext.Provider value={{

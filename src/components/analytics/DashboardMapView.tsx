@@ -163,10 +163,25 @@ export function DashboardMapView() {
 
       const infoWindow = new google.maps.InfoWindow({
         content: `
-          <div class="p-2">
-            <h3 class="font-semibold">${hotspot.name}</h3>
-            <p class="text-sm">Congestion: ${Math.round(hotspot.congestionLevel * 100)}%</p>
-            <p class="text-sm">Vehicles: ${hotspot.vehicleCount}</p>
+          <div class="p-3 min-w-[200px]">
+            <h3 class="font-semibold text-gray-900 mb-2">${hotspot.name}</h3>
+            <div class="space-y-1 text-sm">
+              <p><span class="font-medium">Congestion:</span> ${Math.round(hotspot.congestionLevel * 100)}%</p>
+              <p><span class="font-medium">Vehicles:</span> ${hotspot.vehicleCount}</p>
+              <p><span class="font-medium">Status:</span>
+                <span class="px-2 py-1 rounded text-xs ${
+                  hotspot.congestionLevel > 1.5
+                    ? 'bg-red-100 text-red-800'
+                    : hotspot.congestionLevel > 1.0
+                    ? 'bg-yellow-100 text-yellow-800'
+                    : 'bg-green-100 text-green-800'
+                }">
+                  ${hotspot.congestionLevel > 1.5 ? 'Heavy Traffic' :
+                    hotspot.congestionLevel > 1.0 ? 'Moderate Traffic' : 'Light Traffic'}
+                </span>
+              </p>
+              <p class="text-xs text-gray-500 mt-2">Click map to explore more</p>
+            </div>
           </div>
         `
       });
@@ -252,11 +267,14 @@ export function DashboardMapView() {
             zoom: 14,
             center,
             mapTypeId: 'roadmap',
-            disableDefaultUI: true,
-            draggable: false,
-            zoomControl: false,
-            scrollwheel: false,
-            streetViewControl: false,
+            disableDefaultUI: false,
+            draggable: true,
+            zoomControl: true,
+            scrollwheel: true,
+            streetViewControl: true,
+            mapTypeControl: true,
+            scaleControl: true,
+            fullscreenControl: true,
             styles: [
               {
                 featureType: 'all',
@@ -277,6 +295,33 @@ export function DashboardMapView() {
           });
 
           maps.current[city] = map;
+
+          // Add click handler for map interaction
+          map.addListener('click', (event: google.maps.MapMouseEvent) => {
+            if (event.latLng) {
+              const lat = event.latLng.lat();
+              const lng = event.latLng.lng();
+
+              // Create info window with location details
+              const infoWindow = new google.maps.InfoWindow({
+                content: `
+                  <div class="p-2">
+                    <h3 class="font-semibold text-gray-900">${formatCityName(city)}</h3>
+                    <p class="text-sm text-gray-600">Lat: ${lat.toFixed(4)}, Lng: ${lng.toFixed(4)}</p>
+                    <p class="text-sm text-gray-600">Click to view detailed analytics</p>
+                  </div>
+                `,
+                position: event.latLng
+              });
+
+              infoWindow.open(map);
+
+              // Close info window after 3 seconds
+              setTimeout(() => {
+                infoWindow.close();
+              }, 3000);
+            }
+          });
 
           const trafficLayer = createTrafficLayer();
           trafficLayer.setMap(map);

@@ -5,41 +5,31 @@ import { useNavigate } from 'react-router-dom';
 import FiberManualRecordIcon from '@mui/icons-material/FiberManualRecord';
 
 const FilterContainer = styled(Box)(({ theme }) => ({
-  padding: '16px',
-  borderTop: '1px solid rgba(255, 255, 255, 0.1)',
-  background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%)',
+  padding: '12px',
+  borderTop: '1px solid rgba(255, 255, 255, 0.08)',
 }));
 
 const SectionTitle = styled(Typography)(({ theme }) => ({
-  color: 'rgba(255, 255, 255, 0.9)',
-  fontSize: '13px',
+  color: 'rgba(255, 255, 255, 0.7)',
+  fontSize: '0.75rem',
   fontWeight: 600,
-  letterSpacing: '0.8px',
   textTransform: 'uppercase',
-  marginBottom: '12px',
-  paddingLeft: '8px',
+  marginBottom: '8px',
+  padding: '0 12px',
 }));
 
 const AlertList = styled(List)(({ theme }) => ({
   padding: 0,
 }));
 
-const AlertItem = styled(ListItemButton)(({ theme }) => ({
-  borderRadius: '8px',
-  margin: '2px 0',
-  padding: '8px 12px',
-  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-  
+const AlertItem = styled(ListItemButton)({
+  borderRadius: '6px',
+  padding: '6px 12px',
+  transition: 'background-color 0.2s ease-in-out',
   '&:hover': {
-    background: 'rgba(255, 255, 255, 0.1)',
-    transform: 'translateX(4px)',
-    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
   },
-  
-  '&:active': {
-    transform: 'translateX(2px) scale(0.98)',
-  },
-}));
+});
 
 const StatusIndicator = styled(FiberManualRecordIcon)<{ alertcolor: string }>(({ alertcolor }) => ({
   fontSize: '12px',
@@ -60,12 +50,11 @@ const StatusIndicator = styled(FiberManualRecordIcon)<{ alertcolor: string }>(({
   },
 }));
 
-const AlertText = styled(Typography)(({ theme }) => ({
-  color: 'rgba(255, 255, 255, 0.8)',
-  fontSize: '13px',
-  fontWeight: 500,
-  transition: 'color 0.3s ease',
-}));
+const AlertText = styled(Typography)({
+  color: 'rgba(255, 255, 255, 0.9)',
+  fontSize: '0.8rem',
+  fontWeight: 400,
+});
 
 const CountChip = styled(Chip)(({ theme }) => ({
   height: '20px',
@@ -157,20 +146,9 @@ export function AlertTypeFilter({ isCollapsed = false }: AlertTypeFilterProps) {
               <ListItemIcon sx={{ minWidth: '24px' }}>
                 <StatusIndicator alertcolor={alert.color} />
               </ListItemIcon>
-              <ListItemText>
-                <AlertText>{alert.type}</AlertText>
-                <Typography 
-                  variant="caption" 
-                  sx={{ 
-                    color: 'rgba(255, 255, 255, 0.5)', 
-                    fontSize: '10px',
-                    display: 'block',
-                    marginTop: '1px'
-                  }}
-                >
-                  {alert.description}
-                </Typography>
-              </ListItemText>
+              <ListItemText
+                primary={<AlertText>{alert.type}</AlertText>}
+              />
               <CountChip label={alert.count} size="small" />
             </AlertItem>
           </ListItem>

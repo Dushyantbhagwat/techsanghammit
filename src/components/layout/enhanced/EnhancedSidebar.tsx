@@ -33,7 +33,11 @@ import { AlertTypeFilter } from './AlertTypeFilter';
 const DRAWER_WIDTH = 280;
 const COLLAPSED_WIDTH = 72;
 
-const StyledDrawer = styled(Drawer)<{ collapsed?: boolean }>(({ theme, collapsed }) => ({
+import { Theme } from '@mui/material/styles';
+
+const StyledDrawer = styled(Drawer, {
+  shouldForwardProp: (prop: string) => prop !== 'collapsed',
+})<{ collapsed?: boolean }>(({ theme, collapsed }: { theme: Theme, collapsed?: boolean }) => ({
   width: collapsed ? COLLAPSED_WIDTH : DRAWER_WIDTH,
   flexShrink: 0,
   '& .MuiDrawer-paper': {
@@ -41,30 +45,14 @@ const StyledDrawer = styled(Drawer)<{ collapsed?: boolean }>(({ theme, collapsed
     boxSizing: 'border-box',
     background: 'linear-gradient(180deg, #6C5DD3 0%, #4A3E99 50%, #3D2F7F 100%)',
     borderRight: '1px solid rgba(255, 255, 255, 0.1)',
-    transition: 'width 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-    overflow: 'hidden',
-    
-    '&:hover': {
-      '&::-webkit-scrollbar': {
-        width: '6px',
-      },
-      '&::-webkit-scrollbar-track': {
-        background: 'rgba(255, 255, 255, 0.1)',
-        borderRadius: '3px',
-      },
-      '&::-webkit-scrollbar-thumb': {
-        background: 'rgba(255, 255, 255, 0.3)',
-        borderRadius: '3px',
-        '&:hover': {
-          background: 'rgba(255, 255, 255, 0.4)',
-        },
-      },
-    },
-    
-    '&::-webkit-scrollbar': {
-      width: '0px',
-      transition: 'width 0.3s ease',
-    },
+    transition: theme.transitions.create(['width', 'transform'], {
+      easing: theme.transitions.easing.sharp,
+      duration: theme.transitions.duration.enteringScreen,
+    }),
+    overflowX: 'hidden',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
   },
 }));
 
@@ -77,37 +65,39 @@ const SidebarContent = styled(Box)({
 
 const NavigationSection = styled(Box)({
   flex: 1,
-  padding: '8px 12px',
+  width: '100%',
+  padding: '8px 4px',
   overflowY: 'auto',
   overflowX: 'hidden',
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'center',
 });
 
 const CollapseButton = styled(IconButton)(({ theme }) => ({
   position: 'absolute',
-  top: '50%',
-  right: '-18px',
-  transform: 'translateY(-50%)',
-  width: '36px',
-  height: '36px',
-  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+  top: '24px',
+  right: '-12px',
+  backgroundColor: '#6C5DD3',
   color: 'white',
   border: '2px solid rgba(255, 255, 255, 0.2)',
-  boxShadow: '0 4px 15px rgba(0, 0, 0, 0.2)',
-  transition: 'all 0.3s ease',
-  zIndex: 1000,
-  
+  width: '24px',
+  height: '24px',
+  minWidth: '24px',
+  zIndex: 1300,
+  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
+  transition: 'all 0.2s ease-in-out',
   '&:hover': {
-    background: 'linear-gradient(135deg, #764ba2 0%, #667eea 100%)',
-    transform: 'translateY(-50%) scale(1.1)',
-    boxShadow: '0 6px 20px rgba(0, 0, 0, 0.3)',
+    backgroundColor: '#5a4db0',
+    transform: 'translateX(2px)',
+    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)',
   },
-  
-  '&:active': {
-    transform: 'translateY(-50%) scale(0.95)',
+  '& .MuiSvgIcon-root': {
+    fontSize: '1rem',
   },
 }));
 
-const MobileBackdrop = styled(Box)(({ theme }) => ({
+const MobileBackdrop = styled(Box)(({ theme }: { theme: Theme }) => ({
   position: 'fixed',
   top: 0,
   left: 0,
@@ -126,75 +116,56 @@ interface EnhancedSidebarProps {
   onToggle: () => void;
   selectedCity: string;
   onCitySelect: (city: string) => void;
+  isCollapsed?: boolean;
 }
 
 const navigationItems = [
   { 
     icon: <DashboardOutlinedIcon />, 
     label: 'Dashboard', 
-    path: '/dashboard',
-    notificationCount: 0,
-    status: 'online' as const
+    path: '/dashboard'
   },
   { 
     icon: <MapOutlinedIcon />, 
     label: 'Map View', 
-    path: '/map',
-    notificationCount: 0
+    path: '/map'
   },
   { 
     icon: <VideocamOutlinedIcon />, 
     label: 'Camera Monitoring', 
-    path: '/cameras',
-    notificationCount: 2,
-    status: 'warning' as const
+    path: '/cameras'
   },
   { 
     icon: <NotificationsOutlinedIcon />, 
     label: 'Alerts', 
-    path: '/alerts',
-    notificationCount: 12,
-    status: 'error' as const
+    path: '/alerts'
   },
   { 
     icon: <BusinessOutlinedIcon />, 
     label: 'City Updates', 
-    path: '/city-updates',
-    notificationCount: 0
+    path: '/city-updates'
   },
   { 
     icon: <AnalyticsOutlinedIcon />, 
     label: 'Analytics', 
-    path: '/analytics',
-    notificationCount: 0,
-    status: 'online' as const
+    path: '/analytics'
   },
   { 
     icon: <WarningAmberOutlinedIcon />, 
     label: 'Hazards', 
-    path: '/hazards',
-    notificationCount: 5,
-    status: 'warning' as const
+    path: '/hazards'
   },
   { 
     icon: <SettingsOutlinedIcon />, 
     label: 'Settings', 
-    path: '/settings',
-    notificationCount: 0
+    path: '/settings'
   },
 ];
 
-export function EnhancedSidebar({ isOpen, onToggle, selectedCity, onCitySelect }: EnhancedSidebarProps) {
-  const [isCollapsed, setIsCollapsed] = useState(false);
+export function EnhancedSidebar({ isOpen, onToggle, selectedCity, onCitySelect, isCollapsed = false }: EnhancedSidebarProps) {
   const muiTheme = useMuiTheme();
   const isMobile = useMediaQuery(muiTheme.breakpoints.down('md'));
   const location = useLocation();
-
-  const handleCollapse = () => {
-    if (!isMobile) {
-      setIsCollapsed(!isCollapsed);
-    }
-  };
 
   const handleMobileClose = () => {
     if (isMobile) {
@@ -214,23 +185,16 @@ export function EnhancedSidebar({ isOpen, onToggle, selectedCity, onCitySelect }
         anchor="left"
         open={isMobile ? isOpen : true}
         onClose={handleMobileClose}
-        collapsed={isCollapsed && !isMobile}
+        collapsed={isCollapsed}
         ModalProps={{
           keepMounted: true, // Better mobile performance
         }}
       >
         <SidebarContent>
-          {/* Collapse Button - Desktop Only */}
-          {!isMobile && (
-            <Tooltip title={isCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'} placement="right">
-              <CollapseButton onClick={handleCollapse}>
-                {isCollapsed ? <ChevronRightIcon /> : <ChevronLeftIcon />}
-              </CollapseButton>
-            </Tooltip>
-          )}
+          {/* Removed the collapse button from here as it's now in the header */}
 
           {/* Header */}
-          <SidebarHeader isCollapsed={isCollapsed && !isMobile} />
+          <SidebarHeader isCollapsed={isCollapsed} />
 
           {/* Location Selector */}
           <LocationSelector 
@@ -241,15 +205,19 @@ export function EnhancedSidebar({ isOpen, onToggle, selectedCity, onCitySelect }
 
           {/* Navigation */}
           <NavigationSection>
-            <List sx={{ padding: 0 }}>
+            <List sx={{ 
+              padding: 0,
+              width: '100%',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: isCollapsed ? 'center' : 'flex-start',
+            }}>
               {navigationItems.map((item) => (
                 <NavigationItem
                   key={item.path}
                   icon={item.icon}
                   label={item.label}
                   path={item.path}
-                  notificationCount={item.notificationCount}
-                  status={item.status}
                   isCollapsed={isCollapsed && !isMobile}
                 />
               ))}
@@ -257,7 +225,7 @@ export function EnhancedSidebar({ isOpen, onToggle, selectedCity, onCitySelect }
           </NavigationSection>
 
           {/* Alert Type Filter */}
-          <AlertTypeFilter isCollapsed={isCollapsed && !isMobile} />
+          <AlertTypeFilter isCollapsed={isCollapsed} />
         </SidebarContent>
       </StyledDrawer>
     </>

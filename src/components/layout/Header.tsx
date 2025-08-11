@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { Search, Sun, Moon, LogOut, Menu, MessageSquare } from "lucide-react";
+import { Search, Sun, Moon, LogOut, Menu, MessageSquare, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/contexts/ThemeContext";
@@ -8,9 +8,11 @@ import { ChatAssistant } from "@/components/chat/ChatAssistant";
 
 interface HeaderProps {
   onSidebarToggle: () => void;
+  isSidebarCollapsed: boolean;
+  onToggleSidebar: () => void;
 }
 
-export function Header({ onSidebarToggle }: HeaderProps) {
+export function Header({ onSidebarToggle, isSidebarCollapsed, onToggleSidebar }: HeaderProps) {
   const { user, logout } = useAuth();
   const { isDarkMode, toggleDarkMode } = useTheme();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -81,17 +83,33 @@ export function Header({ onSidebarToggle }: HeaderProps) {
           </div>
         </div>
 
-        {/* Search */}
+        {/* Search and Collapse Button */}
         <div className="flex-1 flex items-center px-2 sm:px-4">
-          <div className="max-w-xl w-full relative">
-            <Search className="absolute left-2 sm:left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <input
-              type="text"
-              placeholder="Search"
-              value={searchQuery}
-              onChange={(e) => handleSearch(e.target.value)}
-              className="w-full pl-8 sm:pl-10 pr-2 sm:pr-4 py-1.5 sm:py-2 text-sm bg-muted/50 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6C5DD3] focus:border-transparent text-foreground placeholder:text-muted-foreground"
-            />
+          <div className="flex items-center gap-2 w-full max-w-2xl">
+            {/* Collapse Button - Desktop Only */}
+            <button
+              onClick={onToggleSidebar}
+              className="hidden md:flex items-center justify-center w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+              aria-label={isSidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            >
+              {isSidebarCollapsed ? (
+                <ChevronRight className="h-4 w-4 text-gray-700 dark:text-gray-300" />
+              ) : (
+                <ChevronLeft className="h-4 w-4 text-gray-700 dark:text-gray-300" />
+              )}
+            </button>
+            
+            {/* Search */}
+            <div className="flex-1 relative">
+              <Search className="absolute left-2 sm:left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <input
+                type="text"
+                placeholder="Search"
+                value={searchQuery}
+                onChange={(e) => handleSearch(e.target.value)}
+                className="w-full pl-8 sm:pl-10 pr-2 sm:pr-4 py-1.5 sm:py-2 text-sm bg-muted/50 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6C5DD3] focus:border-transparent text-foreground placeholder:text-muted-foreground"
+              />
+            </div>
           </div>
         </div>
 

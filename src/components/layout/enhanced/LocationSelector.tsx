@@ -22,20 +22,14 @@ const SelectorContainer = styled(Box)(({ theme }) => ({
   background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%)',
 }));
 
-const HeaderButton = styled(ListItemButton)(({ theme }) => ({
-  borderRadius: '10px',
-  padding: '12px 16px',
-  transition: 'all 0.3s ease',
-  background: 'rgba(255, 255, 255, 0.1)',
-  backdropFilter: 'blur(10px)',
-  border: '1px solid rgba(255, 255, 255, 0.1)',
-  
+const HeaderButton = styled(ListItemButton)({
+  borderRadius: '8px',
+  padding: '12px',
+  transition: 'background-color 0.2s ease-in-out',
   '&:hover': {
-    background: 'rgba(255, 255, 255, 0.15)',
-    transform: 'translateY(-1px)',
-    boxShadow: '0 4px 15px rgba(0, 0, 0, 0.1)',
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
   },
-}));
+});
 
 const ExpandIcon = styled(ExpandMoreIcon)<{ expanded: boolean }>(({ expanded }) => ({
   color: 'rgba(255, 255, 255, 0.8)',
@@ -49,15 +43,12 @@ const CityList = styled(List)(({ theme }) => ({
 }));
 
 const CityItem = styled(ListItemButton)<{ selected?: boolean }>(({ theme, selected }) => ({
-  borderRadius: '8px',
-  margin: '2px 0',
-  padding: '8px 16px',
-  transition: 'all 0.3s ease',
-  background: selected ? 'rgba(255, 255, 255, 0.15)' : 'transparent',
-  
+  borderRadius: '6px',
+  margin: '4px 0',
+  padding: '8px 12px',
+  backgroundColor: selected ? 'rgba(255, 255, 255, 0.1)' : 'transparent',
   '&:hover': {
-    background: selected ? 'rgba(255, 255, 255, 0.2)' : 'rgba(255, 255, 255, 0.1)',
-    transform: 'translateX(4px)',
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
   },
 }));
 
@@ -69,17 +60,14 @@ const CityText = styled(Typography)<{ selected?: boolean }>(({ selected }) => ({
 }));
 
 const HeaderText = styled(Typography)({
-  color: 'rgba(255, 255, 255, 0.9)',
-  fontSize: '14px',
-  fontWeight: 600,
-  letterSpacing: '0.5px',
+  color: 'white',
+  fontSize: '0.9rem',
+  fontWeight: 500,
 });
 
 const SubHeaderText = styled(Typography)({
-  color: 'rgba(255, 255, 255, 0.6)',
-  fontSize: '11px',
-  fontWeight: 400,
-  marginTop: '2px',
+  color: 'rgba(255, 255, 255, 0.7)',
+  fontSize: '0.75rem',
 });
 
 interface LocationSelectorProps {
@@ -125,12 +113,10 @@ export function LocationSelector({ selectedCity, onCitySelect, isCollapsed = fal
         <ListItemIcon sx={{ minWidth: '32px' }}>
           <LocationOnOutlinedIcon sx={{ color: 'rgba(255, 255, 255, 0.8)', fontSize: '20px' }} />
         </ListItemIcon>
-        <ListItemText>
-          <HeaderText>Metropolitan Area</HeaderText>
-          <SubHeaderText>
-            {selectedCityData ? `${selectedCityData.name} • ${selectedCityData.population}` : 'Select City'}
-          </SubHeaderText>
-        </ListItemText>
+        <ListItemText
+          primary={<HeaderText>{selectedCityData ? selectedCityData.name : 'Select City'}</HeaderText>}
+          secondary={<SubHeaderText>{selectedCityData ? `${selectedCityData.population} residents` : ''}</SubHeaderText>}
+        />
         <ExpandIcon expanded={isExpanded} />
       </HeaderButton>
       
@@ -149,22 +135,9 @@ export function LocationSelector({ selectedCity, onCitySelect, isCollapsed = fal
                   <RadioButtonUncheckedIcon sx={{ color: 'rgba(255, 255, 255, 0.6)', fontSize: '16px' }} />
                 )}
               </ListItemIcon>
-              <ListItemText>
-                <CityText selected={selectedCity === city.id}>
-                  {city.name}
-                </CityText>
-                <Typography 
-                  variant="caption" 
-                  sx={{ 
-                    color: 'rgba(255, 255, 255, 0.5)', 
-                    fontSize: '10px',
-                    display: 'block',
-                    marginTop: '1px'
-                  }}
-                >
-                  {city.population} residents
-                </Typography>
-              </ListItemText>
+              <ListItemText
+                primary={<CityText selected={selectedCity === city.id}>{city.name}</CityText>}
+              />
             </CityItem>
           ))}
         </CityList>
