@@ -1,7 +1,3 @@
-export interface BusinessLocation {
-  lat: number;
-  lng: number;
-}
 
 export interface ContactInfo {
   phone: string;
@@ -17,7 +13,6 @@ export interface BusinessSubmission {
   startDate: string;
   endDate: string;
   address: string;
-  location: BusinessLocation;
   contactInfo: ContactInfo;
   imageUrl?: string;
   posterUrl?: string;  // Optional poster image

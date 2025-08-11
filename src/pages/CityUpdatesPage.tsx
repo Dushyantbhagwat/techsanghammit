@@ -6,15 +6,27 @@ import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { Plus } from "lucide-react";
 import { useCity } from "@/contexts/CityContext";
+import { BusinessSubmission } from "@/types/business";
+
 type TabValue = 'updates' | 'business';
 
 export function CityUpdatesPage() {
   const [activeTab, setActiveTab] = useState<TabValue>('updates');
   const [showSubmissionForm, setShowSubmissionForm] = useState(false);
+  const [submittedPromotion, setSubmittedPromotion] = useState<BusinessSubmission | null>(null);
   const { selectedCity } = useCity();
 
   if (showSubmissionForm) {
-    return <BusinessSubmissionPage onBack={() => setShowSubmissionForm(false)} />;
+    return (
+      <BusinessSubmissionPage
+        onBack={() => setShowSubmissionForm(false)}
+        onSubmitSuccess={(submission) => {
+          setSubmittedPromotion(submission);
+          setShowSubmissionForm(false);
+          setActiveTab('business');
+        }}
+      />
+    );
   }
 
   return (
@@ -63,7 +75,7 @@ export function CityUpdatesPage() {
           {activeTab === 'updates' ? (
             <CityUpdatesFeed />
           ) : (
-            <BusinessPromotions />
+            <BusinessPromotions submittedPromotion={submittedPromotion} />
           )}
         </div>
       </div>
