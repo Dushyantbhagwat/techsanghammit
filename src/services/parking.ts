@@ -30,29 +30,51 @@ export interface LocationParkingData {
 }
 
 const LOCATIONS: Record<string, Location> = {
-  "Thane": { latitude: 19.2183, longitude: 72.9783 },
-  "Borivali": { latitude: 19.2301, longitude: 72.8507 },
-  "Kalyan": { latitude: 19.2432, longitude: 73.1356 }
+  "thane": { latitude: 19.2000, longitude: 72.9780 },
+  "borivali": { latitude: 19.2335, longitude: 72.8474 },
+  "kharghar": { latitude: 19.0330, longitude: 73.0297 },
+  "pune": { latitude: 18.5204, longitude: 73.8567 },
+  "nashik": { latitude: 19.9975, longitude: 73.7898 },
+  "panvel": { latitude: 18.9894, longitude: 73.1175 }
 };
 
 const PARKING_SPOTS: Record<string, ParkingSpot[]> = {
-  "Thane": [
+  "thane": [
     { name: "Lake City Mall", totalSpaces: 400 },
     { name: "Station Complex", totalSpaces: 300 },
     { name: "Market Area", totalSpaces: 150 },
     { name: "Business District", totalSpaces: 250 }
   ],
-  "Borivali": [
+  "borivali": [
     { name: "Central Parking", totalSpaces: 300 },
     { name: "Mall Parking", totalSpaces: 400 },
     { name: "Station Parking", totalSpaces: 200 },
     { name: "Market Parking", totalSpaces: 100 }
   ],
-  "Kalyan": [
+  "kharghar": [
+    { name: "Central Park", totalSpaces: 250 },
+    { name: "Station Area", totalSpaces: 200 },
+    { name: "Golf Course", totalSpaces: 150 },
+    { name: "Market Complex", totalSpaces: 200 }
+  ],
+  "pune": [
+    { name: "Shivaji Nagar", totalSpaces: 500 },
+    { name: "Koregaon Park", totalSpaces: 400 },
+    { name: "FC Road", totalSpaces: 300 },
+    { name: "Phoenix Mall", totalSpaces: 600 },
+    { name: "Hinjewadi IT Park", totalSpaces: 800 }
+  ],
+  "nashik": [
+    { name: "College Road", totalSpaces: 300 },
+    { name: "City Center Mall", totalSpaces: 400 },
+    { name: "Old City Area", totalSpaces: 200 },
+    { name: "CIDCO Complex", totalSpaces: 250 }
+  ],
+  "panvel": [
     { name: "Station Complex", totalSpaces: 250 },
-    { name: "Market Zone", totalSpaces: 200 },
-    { name: "Shopping District", totalSpaces: 300 },
-    { name: "Business Hub", totalSpaces: 150 }
+    { name: "Market Area", totalSpaces: 200 },
+    { name: "New Panvel", totalSpaces: 300 },
+    { name: "CIDCO Colony", totalSpaces: 150 }
   ]
 };
 
@@ -130,6 +152,9 @@ const generateMockParkingData = (location: string): LocationParkingData => {
 
 export const fetchParkingData = async (city?: string): Promise<LocationParkingData | LocationParkingData[]> => {
   try {
+    // Simulate API delay
+    await new Promise(resolve => setTimeout(resolve, 500));
+
     if (city) {
       // Return data for specific city
       return generateMockParkingData(city);
