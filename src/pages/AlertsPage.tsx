@@ -4,6 +4,7 @@ import { Card } from "@/components/ui/card";
 import { AlertTriangle, AlertCircle, Bell, Clock, AlertOctagon } from "lucide-react";
 import { ResponsiveLine } from "@nivo/line";
 import { ResponsiveBar } from "@nivo/bar";
+import { VoiceAssistant } from "@/components/alerts/VoiceAssistant";
 
 // Thresholds for different metrics
 const THRESHOLDS = {
@@ -189,6 +190,42 @@ export function AlertsPage() {
     return typeParam ? typeParam.charAt(0).toUpperCase() + typeParam.slice(1) : "All";
   });
   const [alerts, setAlerts] = useState(generateAlerts());
+  const [voiceAssistantData, setVoiceAssistantData] = useState({
+    time: new Date().toLocaleTimeString(),
+    date: new Date().toLocaleDateString(),
+    traffic: {
+      vehicleCount: currentValues.traffic,
+      congestionLevel: getAlertLevel(currentValues.traffic, THRESHOLDS.traffic) === 'red'
+        ? 'high'
+        : getAlertLevel(currentValues.traffic, THRESHOLDS.traffic) === 'yellow'
+        ? 'moderate'
+        : 'low'
+    },
+    aqi: {
+      value: currentValues.aqi,
+      category: getAlertLevel(currentValues.aqi, THRESHOLDS.aqi) === 'red'
+        ? 'hazardous'
+        : getAlertLevel(currentValues.aqi, THRESHOLDS.aqi) === 'yellow'
+        ? 'unhealthy'
+        : 'good'
+    },
+    co2: {
+      value: currentValues.co2,
+      status: getAlertLevel(currentValues.co2, THRESHOLDS.co2) === 'red'
+        ? 'critically high'
+        : getAlertLevel(currentValues.co2, THRESHOLDS.co2) === 'yellow'
+        ? 'elevated'
+        : 'normal'
+    },
+    temperature: {
+      value: currentValues.temperature,
+      status: getAlertLevel(currentValues.temperature, THRESHOLDS.temperature) === 'red'
+        ? 'extremely hot'
+        : getAlertLevel(currentValues.temperature, THRESHOLDS.temperature) === 'yellow'
+        ? 'warm'
+        : 'comfortable'
+    }
+  });
 
   // Update selected type when URL changes
   useEffect(() => {
@@ -202,6 +239,43 @@ export function AlertsPage() {
   useEffect(() => {
     const interval = setInterval(() => {
       setAlerts(generateAlerts());
+      setVoiceAssistantData(prev => ({
+        ...prev,
+        time: new Date().toLocaleTimeString(),
+        date: new Date().toLocaleDateString(),
+        traffic: {
+          vehicleCount: currentValues.traffic,
+          congestionLevel: getAlertLevel(currentValues.traffic, THRESHOLDS.traffic) === 'red'
+            ? 'high'
+            : getAlertLevel(currentValues.traffic, THRESHOLDS.traffic) === 'yellow'
+            ? 'moderate'
+            : 'low'
+        },
+        aqi: {
+          value: currentValues.aqi,
+          category: getAlertLevel(currentValues.aqi, THRESHOLDS.aqi) === 'red'
+            ? 'hazardous'
+            : getAlertLevel(currentValues.aqi, THRESHOLDS.aqi) === 'yellow'
+            ? 'unhealthy'
+            : 'good'
+        },
+        co2: {
+          value: currentValues.co2,
+          status: getAlertLevel(currentValues.co2, THRESHOLDS.co2) === 'red'
+            ? 'critically high'
+            : getAlertLevel(currentValues.co2, THRESHOLDS.co2) === 'yellow'
+            ? 'elevated'
+            : 'normal'
+        },
+        temperature: {
+          value: currentValues.temperature,
+          status: getAlertLevel(currentValues.temperature, THRESHOLDS.temperature) === 'red'
+            ? 'extremely hot'
+            : getAlertLevel(currentValues.temperature, THRESHOLDS.temperature) === 'yellow'
+            ? 'warm'
+            : 'comfortable'
+        }
+      }));
     }, 30000); // Update every 30 seconds
 
     return () => clearInterval(interval);
@@ -280,11 +354,7 @@ export function AlertsPage() {
           <div className="mt-2 text-sm text-gray-500">Distinct locations</div>
         </Card>
 
-        <Card className="p-6">
-          <h3 className="text-lg font-semibold mb-2">Response Time</h3>
-          <div className="text-3xl font-bold">8.5 min</div>
-          <div className="mt-2 text-sm text-gray-500">Average response time</div>
-        </Card>
+        <VoiceAssistant data={voiceAssistantData} />
       </div>
 
       <Card className="p-6">
