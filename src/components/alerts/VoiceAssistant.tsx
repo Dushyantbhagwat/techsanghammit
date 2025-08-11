@@ -257,12 +257,12 @@ export function VoiceAssistant({ data }: VoiceAssistantProps) {
           <select
             value={selectedLanguage}
             onChange={(e) => setSelectedLanguage(e.target.value as Language)}
-            className="px-2 py-1 text-sm border rounded-md"
+            className="px-3 py-2 bg-black text-white border border-gray-800 rounded-md text-sm hover:border-gray-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
             disabled={isSpeaking}
           >
-            <option value="en">English</option>
-            <option value="hi">हिंदी</option>
-            <option value="mr">मराठी</option>
+            <option value="en" className="bg-black text-white">English</option>
+            <option value="hi" className="bg-black text-white">हिंदी</option>
+            <option value="mr" className="bg-black text-white">मराठी</option>
           </select>
           <button
             onClick={toggleSpeech}

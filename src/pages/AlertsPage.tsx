@@ -309,19 +309,23 @@ export function AlertsPage() {
           <select
             value={selectedType}
             onChange={(e) => handleTypeChange(e.target.value)}
-            className="px-3 py-2 border rounded-md text-sm"
+            className="px-3 py-2 bg-black text-white border border-gray-800 rounded-md text-sm hover:border-gray-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
           >
             {types.map(type => (
-              <option key={type} value={type}>{type}</option>
+              <option key={type} value={type} className="bg-black text-white">
+                {type}
+              </option>
             ))}
           </select>
           <select
             value={selectedCategory}
             onChange={(e) => handleCategoryChange(e.target.value)}
-            className="px-3 py-2 border rounded-md text-sm"
+            className="px-3 py-2 bg-black text-white border border-gray-800 rounded-md text-sm hover:border-gray-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none"
           >
             {categories.map(category => (
-              <option key={category} value={category}>{category}</option>
+              <option key={category} value={category} className="bg-black text-white">
+                {category}
+              </option>
             ))}
           </select>
         </div>
@@ -502,53 +506,53 @@ export function AlertsPage() {
           </div>
         </Card>
 
-        <Card className="p-6 bg-gradient-to-br from-gray-900 to-gray-800">
+        <Card className="p-6 bg-gradient-to-br from-black to-gray-900 border border-gray-800">
           <div className="flex items-center justify-between mb-6">
             <h3 className="text-lg font-semibold text-white">Alert Insights</h3>
-            <span className="px-3 py-1 text-xs font-medium bg-blue-500/20 text-blue-400 rounded-full">
+            <span className="px-3 py-1 text-xs font-medium bg-blue-500/30 text-blue-300 rounded-full">
               Live Analysis
             </span>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-6">
               <div>
-                <h4 className="flex items-center gap-2 font-medium mb-3 text-gray-300">
+                <h4 className="flex items-center gap-2 font-medium mb-3 text-gray-200">
                   <span className="w-2 h-2 rounded-full bg-blue-500"></span>
                   Current Status
                 </h4>
                 <div className="space-y-3">
-                  <div className="bg-gray-800/50 rounded-lg p-3">
+                  <div className="bg-black rounded-lg p-3 border border-gray-800">
                     <div className="flex items-center justify-between">
-                      <span className="text-gray-400">Most Active Category</span>
+                      <span className="text-gray-300">Most Active Category</span>
                       <span className="text-white font-medium">
                         {categories.find(c => c !== 'All' && alerts.filter(a => a.category === c).length === Math.max(...categories.filter(c => c !== 'All').map(c => alerts.filter(a => a.category === c).length)))}
                       </span>
                     </div>
-                    <div className="mt-1 text-xs text-gray-500">
+                    <div className="mt-1 text-xs text-gray-400">
                       {Math.max(...categories.filter(c => c !== 'All').map(c => alerts.filter(a => a.category === c).length))} alerts in this category
                     </div>
                   </div>
-                  <div className="bg-gray-800/50 rounded-lg p-3">
+                  <div className="bg-black rounded-lg p-3 border border-gray-800">
                     <div className="flex items-center justify-between">
-                      <span className="text-gray-400">Critical Alerts</span>
+                      <span className="text-gray-300">Critical Alerts</span>
                       <span className={`font-medium ${
                         alerts.filter(a => a.type === 'red').length > 0 ? 'text-red-400' : 'text-green-400'
                       }`}>
                         {alerts.filter(a => a.type === 'red').length}
                       </span>
                     </div>
-                    <div className="mt-1 text-xs text-gray-500">
+                    <div className="mt-1 text-xs text-gray-400">
                       Requiring immediate attention
                     </div>
                   </div>
-                  <div className="bg-gray-800/50 rounded-lg p-3">
+                  <div className="bg-black rounded-lg p-3 border border-gray-800">
                     <div className="flex items-center justify-between">
-                      <span className="text-gray-400">Areas Affected</span>
+                      <span className="text-gray-300">Areas Affected</span>
                       <span className="text-white font-medium">
                         {new Set(alerts.map(a => a.area)).size}
                       </span>
                     </div>
-                    <div className="mt-1 text-xs text-gray-500">
+                    <div className="mt-1 text-xs text-gray-400">
                       Distinct locations with active alerts
                     </div>
                   </div>
@@ -557,36 +561,36 @@ export function AlertsPage() {
             </div>
             <div className="space-y-6">
               <div>
-                <h4 className="flex items-center gap-2 font-medium mb-3 text-gray-300">
+                <h4 className="flex items-center gap-2 font-medium mb-3 text-gray-200">
                   <span className="w-2 h-2 rounded-full bg-purple-500"></span>
                   Smart Recommendations
                 </h4>
                 <div className="space-y-3">
                   {alerts.filter(a => a.type === 'red').length > 0 && (
-                    <div className="bg-red-500/10 text-red-400 rounded-lg p-3">
-                      <div className="font-medium">Critical Alert Response</div>
-                      <div className="mt-1 text-sm">
+                    <div className="bg-black rounded-lg p-3 border border-red-900/50">
+                      <div className="font-medium text-red-400">Critical Alert Response</div>
+                      <div className="mt-1 text-sm text-red-200">
                         Immediate attention required for {alerts.filter(a => a.type === 'red').length} critical alerts. Prioritize high-risk areas.
                       </div>
                     </div>
                   )}
-                  <div className="bg-gray-800/50 rounded-lg p-3">
+                  <div className="bg-black rounded-lg p-3 border border-blue-900/50">
                     <div className="font-medium text-blue-400">Area Monitoring</div>
-                    <div className="mt-1 text-sm text-gray-300">
+                    <div className="mt-1 text-sm text-blue-200">
                       Focus on {Array.from(new Set(alerts.map(a => a.area))).slice(0, 2).join(', ')} for potential escalations.
                     </div>
                   </div>
-                  <div className="bg-gray-800/50 rounded-lg p-3">
+                  <div className="bg-black rounded-lg p-3 border border-green-900/50">
                     <div className="font-medium text-green-400">Optimization</div>
-                    <div className="mt-1 text-sm text-gray-300">
+                    <div className="mt-1 text-sm text-green-200">
                       {alerts.length > 5
                         ? "Review and update response protocols for high alert frequency"
                         : "Current alert levels within normal range. Maintain standard protocols"}
                     </div>
                   </div>
-                  <div className="bg-gray-800/50 rounded-lg p-3">
+                  <div className="bg-black rounded-lg p-3 border border-yellow-900/50">
                     <div className="font-medium text-yellow-400">Resource Allocation</div>
-                    <div className="mt-1 text-sm text-gray-300">
+                    <div className="mt-1 text-sm text-yellow-200">
                       {`Deploy resources to ${
                         categories.find(c => c !== 'All' && alerts.filter(a => a.category === c).length === Math.max(...categories.filter(c => c !== 'All').map(c => alerts.filter(a => a.category === c).length)))
                       } zones for improved response times`}
