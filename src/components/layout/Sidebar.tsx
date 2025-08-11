@@ -67,18 +67,18 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
   };
 
   return (
-    <div className="relative">
+    <div className="h-full">
       {/* Backdrop overlay for mobile */}
       {isOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-black/50 z-30 md:hidden"
           onClick={onToggle}
         />
       )}
       <aside
         className={cn(
-          "fixed left-0 top-[64px] z-40 h-[calc(100vh-64px)] w-[85vw] md:w-64 bg-[#6C5DD3] dark:bg-[#4A3E99] transition-all duration-300 ease-in-out overflow-y-auto",
-          !isOpen && "-translate-x-full"
+          "fixed md:relative h-full w-[85vw] md:w-64 bg-[#6C5DD3] dark:bg-[#4A3E99] transition-transform duration-300 ease-in-out overflow-y-hidden hover:overflow-y-auto scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent",
+          !isOpen && "transform -translate-x-full"
         )}
       >
         <div className="flex flex-col h-full text-white">

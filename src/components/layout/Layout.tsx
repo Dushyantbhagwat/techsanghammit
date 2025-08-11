@@ -12,18 +12,14 @@ export function Layout({ children }: LayoutProps) {
   const { isDarkMode } = useTheme();
 
   return (
-    <div className={`min-h-screen bg-background text-foreground transition-colors duration-200 ${isDarkMode ? 'dark' : ''}`}>
+    <div className={`h-screen flex flex-col bg-background text-foreground transition-colors duration-200 ${isDarkMode ? 'dark' : ''}`}>
       <Header onSidebarToggle={() => setIsSidebarOpen(!isSidebarOpen)} />
-      <Sidebar isOpen={isSidebarOpen} onToggle={() => setIsSidebarOpen(!isSidebarOpen)} />
-      <main
-        className={`pt-16 transition-all duration-300
-          ${isSidebarOpen ? "md:pl-64" : "pl-0"}
-          px-4 md:px-6 lg:px-8
-          ${isSidebarOpen ? "sm:pl-0 md:pl-64" : "pl-0"}
-        `}
-      >
-        {children}
-      </main>
+      <div className="flex flex-1 relative">
+        <Sidebar isOpen={isSidebarOpen} onToggle={() => setIsSidebarOpen(!isSidebarOpen)} />
+        <main className="flex-1 px-4 md:px-6 lg:px-8 pt-4">
+          {children}
+        </main>
+      </div>
     </div>
   );
 }
