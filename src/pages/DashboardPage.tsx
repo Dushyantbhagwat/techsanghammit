@@ -38,7 +38,7 @@ export function DashboardPage() {
   const [activeTab, setActiveTab] = useState("DAY");
   const [aqiData, setAqiData] = useState<AqiDataPoint[]>([]);
   const [environmentalData, setEnvironmentalData] = useState<any>(null);
-  const [parkingData, setParkingData] = useState<any>(null);
+  const [parkingData, setParkingData] = useState<LocationParkingData | null>(null);
   const [streetLightData, setStreetLightData] = useState<any>(null);
   const [trafficData, setTrafficData] = useState<any>(null);
   const [locationParkingData, setLocationParkingData] = useState<Array<{
@@ -47,10 +47,16 @@ export function DashboardPage() {
     occupiedSpaces: number;
     occupancyRate: number;
   }>>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Fetch all data when city changes
   useEffect(() => {
+    let interval: NodeJS.Timeout;
+
     const fetchAllData = async () => {
+      if (!selectedCity) return;
+
+      setIsLoading(true);
       try {
         const [envData, parkData, lightData, trafData] = await Promise.all([
           fetchEnvironmentalData(selectedCity),
@@ -63,72 +69,37 @@ export function DashboardPage() {
         setStreetLightData(lightData);
         setTrafficData(trafData);
 
-        // Transform parking data for pie chart and status
-        const parkingInfo = parkData as LocationParkingData;
-        const totalSpaces = parkingInfo.current.totalSpaces;
-        const occupiedSpaces = parkingInfo.current.occupiedSpaces;
-        const availableSpaces = totalSpaces - occupiedSpaces;
-        const occupancyRate = parkingInfo.current.occupancyRate;
-        
-        // Update parking data for pie chart
-        setParkingData([
-          {
-            id: "Available",
-            value: availableSpaces,
-            color: "#00E396",
-            label: `Available (${Math.round((availableSpaces/totalSpaces) * 100)}%)`
-          },
-          {
-            id: "Occupied",
-            value: occupiedSpaces,
-            color: "#FF4560",
-            label: `Occupied (${Math.round(occupancyRate)}%)`
-          }
-        ]);
+        // Transform parking data
+        const parkingInfo = Array.isArray(parkData) ? parkData[0] : parkData as LocationParkingData;
+        setParkingData(parkingInfo);
 
         // Update locations data
-        setLocationParkingData(parkingInfo.locations.map((loc: { name: string; totalSpaces: number; occupiedSpaces: number; occupancyRate: number }) => ({
-          name: loc.name,
-          totalSpaces: loc.totalSpaces,
-          occupiedSpaces: loc.occupiedSpaces,
-          occupancyRate: loc.occupancyRate
-        })));
+        if (parkingInfo && parkingInfo.locations) {
+          setLocationParkingData(parkingInfo.locations);
+        }
       } catch (error) {
         console.error('Error fetching dashboard data:', error);
+      } finally {
+        setIsLoading(false);
       }
     };
 
     fetchAllData();
+    interval = setInterval(fetchAllData, 30000); // Refresh every 30 seconds
+
+    return () => {
+      if (interval) clearInterval(interval);
+    };
   }, [selectedCity]);
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [envData, parkData] = await Promise.all([
-          fetchEnvironmentalData(selectedCity),
-          fetchParkingData(selectedCity)
-        ]);
-        
-        setEnvironmentalData(envData);
-        // Transform parking data for pie chart
-        if ('current' in parkData) {
-          const totalSpaces = parkData.current.totalSpaces;
-          const occupiedSpaces = parkData.current.occupiedSpaces;
-          const availableSpaces = totalSpaces - occupiedSpaces;
-          
-          setParkingData([
-            { id: "Available", value: availableSpaces, color: "#00E396" },
-            { id: "Occupied", value: occupiedSpaces, color: "#FF4560" }
-          ]);
-        } else {
-          console.warn('Invalid parking data format');
-          setParkingData([
-            { id: "Available", value: 0, color: "#00E396" },
-            { id: "Occupied", value: 0, color: "#FF4560" }
-          ]);
-        }
+    const fetchAqiData = async () => {
+      if (!selectedCity) return;
 
+      try {
+        const envData = await fetchEnvironmentalData(selectedCity);
         let timeData: AqiDataPoint[] = [];
+
         switch (activeTab) {
           case "DAY":
             timeData = envData.timeRangeAverages.daily.map((item: { hour: string; averageAqi: number }) => ({
@@ -161,12 +132,41 @@ export function DashboardPage() {
         }
         setAqiData(timeData);
       } catch (error) {
-        console.error('Error fetching environmental data:', error);
+        console.error('Error fetching AQI data:', error);
       }
     };
 
-    fetchData();
+    fetchAqiData();
   }, [activeTab, selectedCity]);
+
+  // Calculate parking metrics
+  const parkingMetrics = parkingData?.current ? {
+    totalSpaces: parkingData.current.totalSpaces,
+    availableSpaces: parkingData.current.totalSpaces - parkingData.current.occupiedSpaces,
+    occupiedSpaces: parkingData.current.occupiedSpaces
+  } : {
+    totalSpaces: 0,
+    availableSpaces: 0,
+    occupiedSpaces: 0
+  };
+
+  if (isLoading) {
+    return (
+      <div className="p-6">
+        <div className="animate-pulse space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-32 bg-gray-200 rounded-lg"></div>
+            ))}
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="h-96 bg-gray-200 rounded-lg"></div>
+            <div className="h-96 bg-gray-200 rounded-lg"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 space-y-6">
@@ -198,11 +198,19 @@ export function DashboardPage() {
         <MetricCard
           icon={<Car className="h-8 w-8 text-[#6C5DD3]" />}
           title="Parking Status"
-          value={parkingData?.current?.totalSpaces.toString() || "0"}
-          subtitle="Total spots"
+          value={parkingMetrics.totalSpaces.toString()}
+          subtitle={`${Math.round((parkingMetrics.occupiedSpaces / parkingMetrics.totalSpaces) * 100)}% Occupied`}
           details={[
-            { label: "Available", value: String(parkingData?.current?.totalSpaces - parkingData?.current?.occupiedSpaces || 0) },
-            { label: "Occupied", value: String(parkingData?.current?.occupiedSpaces || 0) },
+            { 
+              label: "Available", 
+              value: parkingMetrics.availableSpaces.toString(),
+              color: "text-green-500"
+            },
+            { 
+              label: "Occupied", 
+              value: parkingMetrics.occupiedSpaces.toString(),
+              color: parkingMetrics.occupiedSpaces / parkingMetrics.totalSpaces > 0.8 ? "text-red-500" : "text-amber-500"
+            }
           ]}
           analyticsSection="parking"
         />
@@ -270,66 +278,23 @@ export function DashboardPage() {
               labelSkipWidth={12}
               labelSkipHeight={12}
               role="application"
-              tooltip={({ id, value, color }: TooltipProps) => (
-                <div
-                  style={{
-                    padding: 12,
-                    background: '#ffffff',
-                    border: '1px solid #ccc',
-                    borderRadius: '4px',
-                  }}
-                >
-                  <strong style={{ color }}>
-                    AQI: {value}
-                  </strong>
-                  <br />
-                  <span>
-                    {value <= 50 ? 'Good' :
-                     value <= 100 ? 'Moderate' :
-                     value <= 150 ? 'Unhealthy for Sensitive Groups' :
-                     value <= 200 ? 'Unhealthy' :
-                     value <= 300 ? 'Very Unhealthy' : 'Hazardous'}
-                  </span>
-                </div>
-              )}
               theme={{
-                text: {
-                  fill: "#ffffff",
-                  fontSize: 12
-                },
+                text: { fill: "#ffffff", fontSize: 12 },
                 axis: {
-                  domain: {
-                    line: {
-                      stroke: "#ffffff"
-                    }
-                  },
+                  domain: { line: { stroke: "#ffffff" } },
                   ticks: {
-                    line: {
-                      stroke: "#ffffff"
-                    },
-                    text: {
-                      fill: "#ffffff"
-                    }
+                    line: { stroke: "#ffffff" },
+                    text: { fill: "#ffffff" }
                   },
                   legend: {
-                    text: {
-                      fill: "#ffffff",
-                      fontSize: 12,
-                      fontWeight: 600
-                    }
+                    text: { fill: "#ffffff", fontSize: 12, fontWeight: 600 }
                   }
                 },
                 grid: {
-                  line: {
-                    stroke: "#ffffff",
-                    strokeOpacity: 0.1
-                  }
+                  line: { stroke: "#ffffff", strokeOpacity: 0.1 }
                 },
                 legends: {
-                  text: {
-                    fill: "#ffffff",
-                    fontSize: 12
-                  }
+                  text: { fill: "#ffffff", fontSize: 12 }
                 }
               }}
             />
@@ -358,7 +323,7 @@ export function DashboardPage() {
       <Card className="p-6">
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-lg font-semibold">Environmental data</h3>
-          <button 
+          <button
             className="text-sm text-[#6C5DD3] hover:underline"
             onClick={() => window.location.href = '/analytics?section=environmental'}
           >
@@ -366,115 +331,129 @@ export function DashboardPage() {
           </button>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-           <div className="space-y-2">
-             <div className="flex items-center gap-2">
-               <div className="w-2 h-2 rounded-full bg-[#6C5DD3]" />
-               <div className="text-sm text-gray-500">Temperature</div>
-             </div>
-             <div className="text-2xl font-semibold">{environmentalData?.current.temperature}°C</div>
-           </div>
-           <div className="space-y-2">
-             <div className="flex items-center gap-2">
-               <div className="w-2 h-2 rounded-full bg-[#6C5DD3]" />
-               <div className="text-sm text-gray-500">AQI</div>
-             </div>
-             <div className="text-2xl font-semibold">{environmentalData?.current.aqi.value}</div>
-           </div>
-           <div className="space-y-2">
-             <div className="flex items-center gap-2">
-               <div className="w-2 h-2 rounded-full bg-[#6C5DD3]" />
-               <div className="text-sm text-gray-500">Humidity</div>
-             </div>
-             <div className="text-2xl font-semibold">{environmentalData?.current.humidity}%</div>
-           </div>
-           <div className="space-y-2">
-             <div className="flex items-center gap-2">
-               <div className="w-2 h-2 rounded-full bg-[#6C5DD3]" />
-               <div className="text-sm text-gray-500">CO₂</div>
-             </div>
-             <div className="text-2xl font-semibold">{environmentalData?.current.co2} ppm</div>
-           </div>
-         </div>
-     </Card>
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-[#6C5DD3]" />
+              <div className="text-sm text-gray-500">Temperature</div>
+            </div>
+            <div className="text-2xl font-semibold">{environmentalData?.current.temperature}°C</div>
+          </div>
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-[#6C5DD3]" />
+              <div className="text-sm text-gray-500">AQI</div>
+            </div>
+            <div className="text-2xl font-semibold">{environmentalData?.current.aqi.value}</div>
+          </div>
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-[#6C5DD3]" />
+              <div className="text-sm text-gray-500">Humidity</div>
+            </div>
+            <div className="text-2xl font-semibold">{environmentalData?.current.humidity}%</div>
+          </div>
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-[#6C5DD3]" />
+              <div className="text-sm text-gray-500">CO₂</div>
+            </div>
+            <div className="text-2xl font-semibold">{environmentalData?.current.co2} ppm</div>
+          </div>
+        </div>
+      </Card>
 
-     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-       {/* Parking Occupancy */}
-       <Card className="p-6 col-span-2 lg:col-span-1">
-         <div className="flex items-center justify-between mb-4">
-           <h3 className="text-lg font-semibold">Parking occupancy</h3>
-           <button
-             className="text-sm text-[#6C5DD3] hover:underline"
-             onClick={() => window.location.href = '/analytics?section=parking'}
-           >
-             Read more
-           </button>
-         </div>
-         <div className="h-[200px]">
-           <ResponsivePie
-             data={parkingData || []}
-             margin={{ top: 10, right: 10, bottom: 50, left: 10 }}
-             innerRadius={0.6}
-             padAngle={0.5}
-             cornerRadius={3}
-             colors={{ datum: 'data.color' }}
-             enableArcLinkLabels={false}
-             enableArcLabels={false}
-             legends={[
-               {
-                 anchor: 'bottom',
-                 direction: 'row',
-                 justify: false,
-                 translateY: 40,
-                 itemWidth: 100,
-                 itemHeight: 18,
-                 itemTextColor: '#6B7280',
-                 itemDirection: 'left-to-right',
-                 itemOpacity: 1,
-                 symbolSize: 10,
-                 symbolShape: 'circle'
-               }
-             ]}
-           />
-         </div>
-       </Card>
+      {/* Parking Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Parking Occupancy */}
+        <Card className="p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold">Parking occupancy</h3>
+            <button
+              className="text-sm text-[#6C5DD3] hover:underline"
+              onClick={() => window.location.href = '/analytics?section=parking'}
+            >
+              Read more
+            </button>
+          </div>
+          <div className="h-[200px]">
+            <ResponsivePie
+              data={[
+                {
+                  id: "Available",
+                  value: parkingMetrics.availableSpaces,
+                  color: "#00E396",
+                  label: `Available (${Math.round((parkingMetrics.availableSpaces/parkingMetrics.totalSpaces) * 100)}%)`
+                },
+                {
+                  id: "Occupied",
+                  value: parkingMetrics.occupiedSpaces,
+                  color: "#FF4560",
+                  label: `Occupied (${Math.round((parkingMetrics.occupiedSpaces/parkingMetrics.totalSpaces) * 100)}%)`
+                }
+              ]}
+              margin={{ top: 10, right: 10, bottom: 50, left: 10 }}
+              innerRadius={0.6}
+              padAngle={0.5}
+              cornerRadius={3}
+              colors={{ datum: 'data.color' }}
+              enableArcLinkLabels={false}
+              enableArcLabels={false}
+              legends={[
+                {
+                  anchor: 'bottom',
+                  direction: 'row',
+                  justify: false,
+                  translateY: 40,
+                  itemWidth: 100,
+                  itemHeight: 18,
+                  itemTextColor: '#6B7280',
+                  itemDirection: 'left-to-right',
+                  itemOpacity: 1,
+                  symbolSize: 10,
+                  symbolShape: 'circle'
+                }
+              ]}
+            />
+          </div>
+        </Card>
 
-       {/* Parking Locations */}
-       <Card className="p-6 col-span-2 lg:col-span-1">
-         <div className="flex items-center justify-between mb-4">
-           <h3 className="text-lg font-semibold">Parking Locations</h3>
-         </div>
-         <div className="space-y-4 max-h-[400px] overflow-y-auto">
-           {locationParkingData.map((location, index) => (
-             <div key={index} className="p-4 bg-gray-800 rounded-lg">
-               <div className="flex justify-between items-center mb-2">
-                 <h4 className="font-medium">{location.name}</h4>
-                 <span className={`px-2 py-1 rounded text-sm ${
-                   location.occupancyRate > 80 ? 'bg-red-500/20 text-red-500' :
-                   location.occupancyRate > 50 ? 'bg-yellow-500/20 text-yellow-500' :
-                   'bg-green-500/20 text-green-500'
-                 }`}>
-                   {location.occupancyRate}% Full
-                 </span>
-               </div>
-               <div className="flex justify-between text-sm text-gray-400">
-                 <span>{location.occupiedSpaces} / {location.totalSpaces} spots</span>
-                 <span>{location.totalSpaces - location.occupiedSpaces} available</span>
-               </div>
-               <div className="mt-2 h-2 bg-gray-700 rounded-full overflow-hidden">
-                 <div
-                   className={`h-full rounded-full ${
-                     location.occupancyRate > 80 ? 'bg-red-500' :
-                     location.occupancyRate > 50 ? 'bg-yellow-500' :
-                     'bg-green-500'
-                   }`}
-                   style={{ width: `${location.occupancyRate}%` }}
-                 />
-               </div>
-             </div>
-           ))}
-         </div>
-       </Card>
-     </div>
+        {/* Parking Locations */}
+        <Card className="p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold">Parking Locations</h3>
+          </div>
+          <div className="space-y-4 max-h-[400px] overflow-y-auto">
+            {locationParkingData.map((location, index) => (
+              <div key={index} className="p-4 bg-gray-800 rounded-lg">
+                <div className="flex justify-between items-center mb-2">
+                  <h4 className="font-medium">{location.name}</h4>
+                  <span className={`px-2 py-1 rounded text-sm ${
+                    location.occupancyRate > 80 ? 'bg-red-500/20 text-red-500' :
+                    location.occupancyRate > 50 ? 'bg-yellow-500/20 text-yellow-500' :
+                    'bg-green-500/20 text-green-500'
+                  }`}>
+                    {location.occupancyRate}% Full
+                  </span>
+                </div>
+                <div className="flex justify-between text-sm text-gray-400">
+                  <span>{location.occupiedSpaces} / {location.totalSpaces} spots</span>
+                  <span>{location.totalSpaces - location.occupiedSpaces} available</span>
+                </div>
+                <div className="mt-2 h-2 bg-gray-700 rounded-full overflow-hidden">
+                  <div
+                    className={`h-full rounded-full ${
+                      location.occupancyRate > 80 ? 'bg-red-500' :
+                      location.occupancyRate > 50 ? 'bg-yellow-500' :
+                      'bg-green-500'
+                    }`}
+                    style={{ width: `${location.occupancyRate}%` }}
+                  />
+                </div>
+              </div>
+            ))}
+          </div>
+        </Card>
+      </div>
     </div>
   );
 }

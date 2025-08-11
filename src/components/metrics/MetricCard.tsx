@@ -10,6 +10,7 @@ interface MetricCardProps {
   details?: {
     label: string;
     value: string | number;
+    color?: string;
   }[];
   className?: string;
   readMoreLink?: string;
@@ -31,7 +32,7 @@ export function MetricCard({
     : readMoreLink || '#';
 
   return (
-    <Card className={cn("p-6", className)}>
+    <Card className={cn("p-6 hover:shadow-lg transition-shadow", className)}>
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-4">
           {icon}
@@ -76,7 +77,7 @@ export function MetricCard({
               className="flex items-center justify-between text-sm"
             >
               <span className="text-gray-500">{detail.label}</span>
-              <span className="font-medium">{detail.value}</span>
+              <span className={cn("font-medium", detail.color)}>{detail.value}</span>
             </div>
           ))}
         </div>
