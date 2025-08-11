@@ -14,6 +14,7 @@ import { CityProvider } from "./contexts/CityContext";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 import { MapView } from "./components/analytics/MapView";
 import CameraMonitoringPage from "./pages/CameraMonitoringPage";
+import Parking from './parking/Parking';
 
 function App() {
   return (
@@ -63,6 +64,14 @@ function App() {
                     <CameraMonitoringPage />
                   </Layout>
                 </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/parking"
+              element={
+                  <Layout>
+                    <Parking />
+                  </Layout>
               }
             />
             <Route
