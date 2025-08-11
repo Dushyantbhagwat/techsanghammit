@@ -15,33 +15,61 @@ interface CityMapData {
   heatmapData: Array<google.maps.visualization.WeightedLocation>;
 }
 
+const formatCityName = (city: string) => {
+  return city.charAt(0).toUpperCase() + city.slice(1);
+};
+
 const CITY_COORDINATES: Record<string, google.maps.LatLngLiteral> = {
-  Borivali: { lat: 19.2335, lng: 72.8474 },
-  Thane: { lat: 19.2183, lng: 72.9780 },
-  Kalyan: { lat: 19.2403, lng: 73.1305 }
+  thane: { lat: 19.2000, lng: 72.9780 },
+  borivali: { lat: 19.2335, lng: 72.8474 },
+  kharghar: { lat: 19.0330, lng: 73.0297 },
+  pune: { lat: 18.5204, lng: 73.8567 },
+  nashik: { lat: 19.9975, lng: 73.7898 },
+  panvel: { lat: 18.9894, lng: 73.1175 }
 };
 
 const POINTS_OF_INTEREST: Record<string, Array<{ name: string } & google.maps.LatLngLiteral>> = {
-  Borivali: [
+  thane: [
+    { name: 'Lake City Mall', lat: 19.2000, lng: 72.9780 },
+    { name: 'Station Complex', lat: 19.1950, lng: 72.9760 },
+    { name: 'Business District', lat: 19.2050, lng: 72.9800 },
+    { name: 'Market Area', lat: 19.1970, lng: 72.9740 },
+    { name: 'Residential Zone', lat: 19.2020, lng: 72.9770 }
+  ],
+  borivali: [
     { name: 'Station Area', lat: 19.2335, lng: 72.8474 },
     { name: 'Market Complex', lat: 19.2310, lng: 72.8460 },
     { name: 'Residential Area', lat: 19.2360, lng: 72.8490 },
     { name: 'Shopping District', lat: 19.2320, lng: 72.8440 },
     { name: 'Business Hub', lat: 19.2380, lng: 72.8450 }
   ],
-  Thane: [
-    { name: 'Lake City Mall', lat: 19.2183, lng: 72.9780 },
-    { name: 'Station Complex', lat: 19.2150, lng: 72.9760 },
-    { name: 'Business District', lat: 19.2200, lng: 72.9800 },
-    { name: 'Market Area', lat: 19.2170, lng: 72.9740 },
-    { name: 'Residential Zone', lat: 19.2220, lng: 72.9770 }
+  kharghar: [
+    { name: 'Central Park', lat: 19.0330, lng: 73.0297 },
+    { name: 'Station Area', lat: 19.0350, lng: 73.0280 },
+    { name: 'Golf Course', lat: 19.0310, lng: 73.0320 },
+    { name: 'Market Complex', lat: 19.0370, lng: 73.0260 },
+    { name: 'Business Hub', lat: 19.0290, lng: 73.0310 }
   ],
-  Kalyan: [
-    { name: 'Kalyan Station', lat: 19.2403, lng: 73.1305 },
-    { name: 'Market Area', lat: 19.2350, lng: 73.1290 },
-    { name: 'Shopping District', lat: 19.2420, lng: 73.1320 },
-    { name: 'Residential Area', lat: 19.2380, lng: 73.1340 },
-    { name: 'Business District', lat: 19.2410, lng: 73.1280 }
+  pune: [
+    { name: 'Shivaji Nagar', lat: 18.5204, lng: 73.8567 },
+    { name: 'Koregaon Park', lat: 18.5350, lng: 73.8950 },
+    { name: 'Hinjewadi IT Park', lat: 18.5912, lng: 73.7375 },
+    { name: 'FC Road', lat: 18.5236, lng: 73.8478 },
+    { name: 'Kalyani Nagar', lat: 18.5452, lng: 73.9040 }
+  ],
+  nashik: [
+    { name: 'Nashik Road Station', lat: 19.9975, lng: 73.7898 },
+    { name: 'College Road', lat: 20.0050, lng: 73.7890 },
+    { name: 'CIDCO Area', lat: 19.9920, lng: 73.7650 },
+    { name: 'Old City', lat: 20.0060, lng: 73.7920 },
+    { name: 'Industrial Area', lat: 19.9850, lng: 73.7780 }
+  ],
+  panvel: [
+    { name: 'Panvel Station', lat: 18.9894, lng: 73.1175 },
+    { name: 'New Panvel', lat: 18.9950, lng: 73.1250 },
+    { name: 'Kalamboli', lat: 19.0023, lng: 73.1012 },
+    { name: 'Old Panvel Market', lat: 18.9880, lng: 73.1130 },
+    { name: 'CIDCO Colony', lat: 18.9920, lng: 73.1220 }
   ]
 };
 
@@ -54,9 +82,10 @@ export function MapView() {
   const [heatmaps, setHeatmaps] = useState<Record<string, google.maps.visualization.HeatmapLayer>>({});
   
   const mapRefs: Record<string, React.RefObject<HTMLDivElement>> = {
-    Borivali: useRef<HTMLDivElement>(null),
-    Thane: useRef<HTMLDivElement>(null),
-    Kalyan: useRef<HTMLDivElement>(null)
+    thane: useRef<HTMLDivElement>(null),
+    borivali: useRef<HTMLDivElement>(null),
+    kharghar: useRef<HTMLDivElement>(null),
+    pune: useRef<HTMLDivElement>(null)
   };
 
   // Convert traffic data to heatmap weights
@@ -231,7 +260,7 @@ export function MapView() {
     <div className="space-y-6">
       {citiesToShow.map(city => (
         <Card key={city} className="p-6 relative">
-          <h2 className="text-xl font-semibold mb-4">Real-Time Traffic & Crowd Analytics for {city}</h2>
+          <h2 className="text-xl font-semibold mb-4">Real-Time Traffic & Crowd Analytics for {formatCityName(city)}</h2>
           <div
             ref={mapRefs[city]}
             className="h-[400px] w-full rounded-lg overflow-hidden"

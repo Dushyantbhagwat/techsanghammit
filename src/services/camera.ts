@@ -92,8 +92,18 @@ const trafficCameras: CameraData[] = [
   }
 ];
 
-export const getCameraData = () => {
-  return trafficCameras;
+export const getCameraData = (searchQuery?: string) => {
+  if (!searchQuery) return trafficCameras;
+  
+  const query = searchQuery.toLowerCase();
+  return trafficCameras.filter(camera =>
+    camera.location.toLowerCase().includes(query) ||
+    camera.trafficDensity.toLowerCase().includes(query) ||
+    camera.recentDetections.some(detection =>
+      detection.vehicleNumber.toLowerCase().includes(query) ||
+      detection.type.toLowerCase().includes(query)
+    )
+  );
 };
 
 export const getCameraById = (id: number) => {

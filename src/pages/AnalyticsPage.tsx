@@ -22,15 +22,17 @@ export function AnalyticsPage() {
   const [activeSection, setActiveSection] = useState<AnalyticsSection>('traffic');
 
   useEffect(() => {
-    const section = searchParams.get('section');
-    if (section && sections.some(s => s.id === section)) {
-      setActiveSection(section as AnalyticsSection);
+    const tab = searchParams.get('tab');
+    if (tab && sections.some(s => s.id === tab)) {
+      setActiveSection(tab as AnalyticsSection);
     }
   }, [searchParams]);
 
   const handleSectionChange = (section: AnalyticsSection) => {
     setActiveSection(section);
-    setSearchParams({ section });
+    // Preserve existing search parameter when changing sections
+    const search = searchParams.get('search') || '';
+    setSearchParams({ tab: section, ...(search ? { search } : {}) });
   };
 
   const renderAnalytics = () => {

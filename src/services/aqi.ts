@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { predictAQI, type AQIPrediction } from './ml/statistical_aqi_predictor';
 
-const LOCATIONS = ["thane", "borivali", "kharghar"] as const;
+const LOCATIONS = ["thane", "borivali", "kharghar", "pune", "nashik", "panvel"] as const;
 type Location = typeof LOCATIONS[number];
 
 interface WAQIResponse {
@@ -87,7 +87,7 @@ const normalizeLocation = (location: string): Location => {
   if (LOCATIONS.includes(normalized as Location)) {
     return normalized as Location;
   }
-  return 'kharghar'; // Default to kharghar if location not found
+  return 'pune'; // Default to pune if location not found
 };
 
 // Get AQI category and color based on value
@@ -109,7 +109,10 @@ const generateMockData = (location: Location, timestamp: Date): WAQIResponse['da
   const baseAqis: Record<Location, number> = {
     thane: 145,
     borivali: 125,
-    kharghar: 130
+    kharghar: 130,
+    pune: 135,
+    nashik: 120,
+    panvel: 128
   };
 
   // Time-based factors

@@ -1,4 +1,4 @@
-let isInitialized = false;
+    let isInitialized = false;
 let isInitializing = false;
 let initPromise: Promise<void> | null = null;
 

@@ -2,19 +2,26 @@ import { Card } from "@/components/ui/card";
 import { getCameraData } from "@/services/camera";
 import type { CameraData } from "@/services/camera";
 import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 
 export function CameraMonitoring() {
   const [cameras, setCameras] = useState<CameraData[]>([]);
+  const [searchParams] = useSearchParams();
 
   useEffect(() => {
-    // In a real application, this would fetch from an API
-    setCameras(getCameraData());
-  }, []);
+    const searchQuery = searchParams.get('search') || '';
+    setCameras(getCameraData(searchQuery));
+  }, [searchParams]);
 
   return (
     <div className="p-4">
       <h2 className="text-2xl font-bold mb-4">Live Camera Monitoring</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      {cameras.length === 0 ? (
+        <div className="text-center py-8">
+          <p className="text-lg text-muted-foreground">No cameras found matching your search criteria.</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {cameras.map((camera: CameraData) => (
           <Card key={camera.id} className="overflow-hidden">
             <div className="relative">
@@ -60,7 +67,8 @@ export function CameraMonitoring() {
             </div>
           </Card>
         ))}
-      </div>
+        </div>
+      )}
     </div>
   );
 }

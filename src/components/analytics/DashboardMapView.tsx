@@ -42,10 +42,17 @@ interface CityData {
   }>;
 }
 
+const formatCityName = (city: string) => {
+  return city.charAt(0).toUpperCase() + city.slice(1);
+};
+
 const CITY_COORDINATES: Record<string, google.maps.LatLngLiteral> = {
-  Borivali: { lat: 19.2335, lng: 72.8474 },
-  Thane: { lat: 19.2000, lng: 72.9780 },
-  Kalyan: { lat: 19.2350, lng: 73.1305 }
+  thane: { lat: 19.2000, lng: 72.9780 },
+  borivali: { lat: 19.2335, lng: 72.8474 },
+  kharghar: { lat: 19.0330, lng: 73.0297 },
+  pune: { lat: 18.5204, lng: 73.8567 },
+  nashik: { lat: 19.9975, lng: 73.7898 },
+  panvel: { lat: 18.9894, lng: 73.1175 }
 };
 
 export function DashboardMapView() {
@@ -57,9 +64,12 @@ export function DashboardMapView() {
   const heatmaps = useRef<Record<string, google.maps.visualization.HeatmapLayer>>({});
   
   const mapRefs: Record<string, React.RefObject<HTMLDivElement>> = {
-    Borivali: useRef<HTMLDivElement>(null),
-    Thane: useRef<HTMLDivElement>(null),
-    Kalyan: useRef<HTMLDivElement>(null)
+    thane: useRef<HTMLDivElement>(null),
+    borivali: useRef<HTMLDivElement>(null),
+    kharghar: useRef<HTMLDivElement>(null),
+    pune: useRef<HTMLDivElement>(null),
+    nashik: useRef<HTMLDivElement>(null),
+    panvel: useRef<HTMLDivElement>(null)
   };
 
   // Debounce function to prevent excessive updates
@@ -326,7 +336,7 @@ export function DashboardMapView() {
           key={city}
           className={`p-6 relative ${selectedCity === city ? 'ring-2 ring-primary' : ''}`}
         >
-          <h3 className="text-lg font-semibold mb-2">{city}</h3>
+          <h3 className="text-lg font-semibold mb-2">{formatCityName(city)}</h3>
           <div
             ref={mapRefs[city]}
             className="h-[250px] w-full rounded-lg overflow-hidden"

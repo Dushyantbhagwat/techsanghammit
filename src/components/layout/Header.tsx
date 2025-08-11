@@ -1,15 +1,47 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { Search, Sun, Moon, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/contexts/ThemeContext";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 
 export function Header() {
   const { user, logout } = useAuth();
   const { isDarkMode, toggleDarkMode } = useTheme();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const handleSearch = useCallback((query: string) => {
+    setSearchQuery(query);
+    
+    // Check for specific keywords to determine navigation
+    const queryLower = query.toLowerCase();
+    if (queryLower.includes('environmental') || queryLower.includes('aqi') || queryLower.includes('pollution')) {
+      navigate(`/analytics?tab=environmental&search=${encodeURIComponent(query)}`);
+    } else if (queryLower.includes('traffic') || queryLower.includes('vehicle')) {
+      navigate(`/analytics?tab=traffic&search=${encodeURIComponent(query)}`);
+    } else if (queryLower.includes('parking')) {
+      navigate(`/analytics?tab=parking&search=${encodeURIComponent(query)}`);
+    } else if (queryLower.includes('security') || queryLower.includes('camera')) {
+      navigate(`/analytics?tab=security&search=${encodeURIComponent(query)}`);
+    } else if (queryLower.includes('streetlight') || queryLower.includes('light')) {
+      navigate(`/analytics?tab=streetlight&search=${encodeURIComponent(query)}`);
+    } else {
+      // Handle search based on current route if no specific keywords match
+      const currentPath = location.pathname;
+      if (currentPath.includes('/camera')) {
+        navigate(`/camera?search=${encodeURIComponent(query)}`);
+      } else if (currentPath.includes('/analytics')) {
+        navigate(`/analytics?search=${encodeURIComponent(query)}`);
+      } else if (currentPath.includes('/alerts')) {
+        navigate(`/alerts?search=${encodeURIComponent(query)}`);
+      } else {
+        navigate(`/dashboard?search=${encodeURIComponent(query)}`);
+      }
+    }
+  }, [location.pathname, navigate]);
 
   const handleLogout = () => {
     logout();
@@ -39,6 +71,8 @@ export function Header() {
           <input
             type="text"
             placeholder="Search"
+            value={searchQuery}
+            onChange={(e) => handleSearch(e.target.value)}
             className="w-full pl-10 pr-4 py-2 text-sm bg-muted/50 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#6C5DD3] focus:border-transparent text-foreground placeholder:text-muted-foreground"
           />
         </div>

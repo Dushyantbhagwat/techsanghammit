@@ -1,4 +1,8 @@
 import { cn } from "@/lib/utils";
+
+const formatCityName = (city: string) => {
+  return city.charAt(0).toUpperCase() + city.slice(1);
+};
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   ChevronDown,
@@ -34,10 +38,13 @@ const navItems: NavItem[] = [
 ];
 
 const denseAreas = [
-  "Borivali",
-  "Thane",
-  "Kalyan"
-];
+  "thane",
+  "borivali",
+  "kharghar",
+  "pune",
+  "nashik",
+  "panvel"
+] as const;
 
 const alertTypes = [
   { type: "Critical", color: "bg-red-500", severity: "red" },
@@ -73,7 +80,7 @@ export function Sidebar({ isOpen }: SidebarProps) {
           >
             <div className="flex items-center gap-2">
               <MapPin className="h-4 w-4" />
-              <span>Mumbai Metropolitan Area</span>
+              <span>Large Metropolitan Area</span>
             </div>
             <ChevronDown className={cn(
               "h-4 w-4 transition-transform",
@@ -93,7 +100,7 @@ export function Sidebar({ isOpen }: SidebarProps) {
                   onClick={() => setSelectedCity(area)}
                 >
                   <ChevronRight className="h-3 w-3" />
-                  <span className="text-sm">{area}</span>
+                  <span className="text-sm">{formatCityName(area)}</span>
                 </div>
               ))}
             </div>
