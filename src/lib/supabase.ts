@@ -1,7 +1,11 @@
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = 'https://jlzygxfwayaynrwviush.supabase.co'
-const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpsenlneGZ3YXlheW5yd3ZpdXNoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQwNTc4NjIsImV4cCI6MjA2OTYzMzg2Mn0.6U9E2N1ISO_MZ_HAceIiphx-HsKn5a2D-AsIl7TWxIo'
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://jlzygxfwayaynrwviush.supabase.co'
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpsenlneGZ3YXlheW5yd3ZpdXNoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQwNTc4NjIsImV4cCI6MjA2OTYzMzg2Mn0.6U9E2N1ISO_MZ_HAceIiphx-HsKn5a2D-AsIl7TWxIo'
+
+if (!supabaseUrl || !supabaseAnonKey) {
+  console.warn('Supabase credentials not properly configured. Please set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY environment variables.')
+}
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 

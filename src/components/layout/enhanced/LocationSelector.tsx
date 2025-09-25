@@ -81,7 +81,7 @@ const cities = [
   { id: 'borivali', name: 'Borivali', population: '1.2M' },
   { id: 'kharghar', name: 'Kharghar', population: '0.8M' },
   { id: 'pune', name: 'Pune', population: '3.1M' },
-  { id: 'nashik', name: 'Nashik', population: '1.5M' },
+  { id: 'delhi-ncr', name: 'DELHI NCR', population: '1.5M' },
   { id: 'panvel', name: 'Panvel', population: '0.9M' },
 ];
 

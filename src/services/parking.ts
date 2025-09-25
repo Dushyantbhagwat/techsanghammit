@@ -44,7 +44,7 @@ const LOCATIONS: Record<string, Location> = {
   "borivali": { latitude: 19.2335, longitude: 72.8474 },
   "andheri": { latitude: 19.1136, longitude: 72.8697 },
   "kharghar": { latitude: 19.0330, longitude: 73.0297 },
-  "nashik": { latitude: 19.9975, longitude: 73.7898 },
+  "delhi-ncr": { latitude: 19.9975, longitude: 73.7898 },
   "panvel": { latitude: 18.9894, longitude: 73.1175 }
 };
 
@@ -143,7 +143,7 @@ const PARKING_SPOTS: Record<string, ParkingSpot[]> = {
     { name: "Golf Course", totalSpaces: 150 },
     { name: "Market Complex", totalSpaces: 200 }
   ],
-  "nashik": [
+  "delhi-ncr": [
     { name: "College Road", totalSpaces: 300 },
     { name: "City Center Mall", totalSpaces: 400 },
     { name: "Old City Area", totalSpaces: 200 },

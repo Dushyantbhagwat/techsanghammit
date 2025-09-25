@@ -113,10 +113,10 @@ export const localNewsData: Record<string, NewsArticle[]> = {
       link: '#'
     }
   ],
-  'nashik': [
+  'delhi-ncr': [
     {
-      id: 'nashik-1',
-      title: 'Nashik Smart City Project Update',
+      id: 'delhi-ncr-1',
+      title: 'DELHI NCR Smart City Project Update',
       description: 'Smart city initiatives making progress with new digital infrastructure.',
       content: 'Implementation of smart traffic signals and surveillance systems nearing completion.',
       pubDate: new Date().toISOString(),
@@ -125,15 +125,15 @@ export const localNewsData: Record<string, NewsArticle[]> = {
       link: '#'
     },
     {
-      id: 'nashik-2',
+      id: 'delhi-ncr-2',
       title: 'Wine Festival Announcement',
-      description: 'Annual Nashik Wine Festival dates announced, featuring local vineyards.',
+      description: 'Annual DELHI NCR Wine Festival dates announced, featuring local vineyards.',
       content: 'The festival will showcase wines from over 30 local vineyards with food pairings.',
       pubDate: new Date().toISOString(),
       category: 'EVENT',
       source: 'Tourism Board',
       link: '#',
-      imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5d/Sula_Vineyards_Nashik.jpg/1200px-Sula_Vineyards_Nashik.jpg'
+      imageUrl: 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5d/Sula_Vineyards_DELHI_NCR.jpg/1200px-Sula_Vineyards_DELHI_NCR.jpg'
     }
   ]
 };

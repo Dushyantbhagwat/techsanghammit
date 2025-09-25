@@ -8,6 +8,8 @@ export default defineConfig({
     resolve: {
         alias: {
             "@": path.resolve(__dirname, "src"),
+            '@mui/material': path.resolve(__dirname, 'node_modules/@mui/material'),
+            '@mui/icons-material': path.resolve(__dirname, 'node_modules/@mui/icons-material'),
         },
     },
     // Ensure proper handling of environment variables

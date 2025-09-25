@@ -22,7 +22,7 @@ const CITY_COORDINATES: Record<string, google.maps.LatLngLiteral> = {
   borivali: { lat: 19.2335, lng: 72.8474 },
   kharghar: { lat: 19.0330, lng: 73.0297 },
   pune: { lat: 18.5204, lng: 73.8567 },
-  nashik: { lat: 19.9975, lng: 73.7898 },
+  'delhi-ncr': { lat: 19.9975, lng: 73.7898 },
   panvel: { lat: 18.9894, lng: 73.1175 }
 };
 
@@ -55,8 +55,8 @@ const POINTS_OF_INTEREST: Record<string, Array<{ name: string } & google.maps.La
     { name: 'FC Road', lat: 18.5236, lng: 73.8478 },
     { name: 'Kalyani Nagar', lat: 18.5452, lng: 73.9040 }
   ],
-  nashik: [
-    { name: 'Nashik Road Station', lat: 19.9975, lng: 73.7898 },
+  'delhi-ncr': [
+    { name: 'DELHI NCR Road Station', lat: 19.9975, lng: 73.7898 },
     { name: 'College Road', lat: 20.0050, lng: 73.7890 },
     { name: 'CIDCO Area', lat: 19.9920, lng: 73.7650 },
     { name: 'Old City', lat: 20.0060, lng: 73.7920 },
@@ -83,7 +83,7 @@ export function MapView() {
     borivali: useRef<HTMLDivElement>(null),
     kharghar: useRef<HTMLDivElement>(null),
     pune: useRef<HTMLDivElement>(null),
-    nashik: useRef<HTMLDivElement>(null),
+    'delhi-ncr': useRef<HTMLDivElement>(null),
     panvel: useRef<HTMLDivElement>(null)
   };
 

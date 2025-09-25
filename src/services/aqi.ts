@@ -22,6 +22,8 @@ export interface EnvironmentalData {
     temperature: number;
     humidity: number;
     co2: number;
+    windSpeed?: number;
+    city?: string;
     aqi: {
       value: number;
       category: string;
@@ -32,6 +34,7 @@ export interface EnvironmentalData {
         o3?: number;
       };
       prediction?: AQIPrediction;
+      source?: string;
     };
   };
   hourly: Array<{
@@ -39,6 +42,7 @@ export interface EnvironmentalData {
     temperature: number;
     humidity: number;
     co2: number;
+    windSpeed?: number;
     aqi: {
       value: number;
       pollutants?: {
@@ -211,7 +215,7 @@ export const fetchRealAQI = async (lat: number, lng: number): Promise<{
 
     // Try World Air Quality Index (WAQI) API as fallback
     const waqiApiKey = import.meta.env.VITE_WAQI_API_KEY;
-    if (waqiApiKey && waqiApiKey !== 'ff7666bc1d1a8b78288bfb10ef6d29995b3f51d6') {
+    if (waqiApiKey) {
       try {
         const waqiUrl = `https://api.waqi.info/feed/geo:${lat};${lng}/?token=${waqiApiKey}`;
         const waqiResponse = await fetch(waqiUrl);

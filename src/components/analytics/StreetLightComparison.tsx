@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 import { fetchStreetLightData, type StreetLightData } from '@/services/streetlight';
 
-const CITIES = ['thane', 'borivali', 'kharghar', 'pune', 'nashik', 'panvel'];
+const CITIES = ['thane', 'borivali', 'kharghar', 'pune', 'delhi-ncr', 'panvel'];
 
 export function StreetLightComparison() {
   const [cityData, setCityData] = useState<Record<string, StreetLightData>>({});
@@ -268,7 +268,7 @@ export function StreetLightComparison() {
           <div>
             <h4 className="font-medium text-orange-500 mb-2">Religious Centers</h4>
             <ul className="space-y-1">
-              <li>• Nashik: Traditional design elements</li>
+              <li>• DELHI NCR: Traditional design elements</li>
               <li>• Consistent lighting for religious sites</li>
               <li>• Festival-ready illumination</li>
               <li>• Aging infrastructure with heritage focus</li>

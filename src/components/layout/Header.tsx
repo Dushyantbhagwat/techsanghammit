@@ -98,10 +98,6 @@ export function Header({ onSidebarToggle, isSidebarCollapsed, onToggleSidebar }:
 
         {/* Search and Logo */}
         <div className="flex-1 flex items-center px-6 gap-6">
-          {/* Urban X Logo */}
-          <div className="flex items-center gap-1">
-            <span className="text-xl font-bold bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">Urban X</span>
-          </div>
           
           <div className="flex-1 flex items-center gap-2 max-w-2xl">
             

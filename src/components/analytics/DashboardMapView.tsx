@@ -38,7 +38,7 @@ const CITY_COORDINATES: Record<string, google.maps.LatLngLiteral> = {
   borivali: { lat: 19.2335, lng: 72.8474 },
   kharghar: { lat: 19.0330, lng: 73.0297 },
   pune: { lat: 18.5204, lng: 73.8567 },
-  nashik: { lat: 19.9975, lng: 73.7898 },
+  'delhi-ncr': { lat: 19.9975, lng: 73.7898 },
   panvel: { lat: 18.9894, lng: 73.1175 }
 };
 
@@ -57,7 +57,7 @@ export function DashboardMapView() {
     borivali: useRef<HTMLDivElement>(null),
     kharghar: useRef<HTMLDivElement>(null),
     pune: useRef<HTMLDivElement>(null),
-    nashik: useRef<HTMLDivElement>(null),
+    'delhi-ncr': useRef<HTMLDivElement>(null),
     panvel: useRef<HTMLDivElement>(null)
   };
 
@@ -70,12 +70,24 @@ export function DashboardMapView() {
     const heatmapData: CityData['heatmapData'] = [];
     const trafficHotspots: CityData['trafficHotspots'] = [];
 
-    // Process traffic hotspots
+    // Process traffic hotspots using improved distribution algorithm
     trafficData.hotspots?.forEach((hotspot, index) => {
-      const offset = 0.002 * index;
+      // Create better spread pattern - use circular distribution
+      const angle = (index * 2 * Math.PI) / Math.max(trafficData.hotspots.length, 1);
+      const radius = 0.008 + (index % 3) * 0.004; // Varying radius for depth
+      
+      // Convert polar to cartesian coordinates for better distribution
+      const latOffset = Math.cos(angle) * radius;
+      const lngOffset = Math.sin(angle) * radius;
+      
+      // Add some controlled randomization
+      const randomFactor = 0.002;
+      const randomLatOffset = (Math.random() - 0.5) * randomFactor;
+      const randomLngOffset = (Math.random() - 0.5) * randomFactor;
+      
       const position = {
-        lat: CITY_COORDINATES[city].lat + offset,
-        lng: CITY_COORDINATES[city].lng + offset
+        lat: CITY_COORDINATES[city].lat + latOffset + randomLatOffset,
+        lng: CITY_COORDINATES[city].lng + lngOffset + randomLngOffset
       };
 
       trafficHotspots.push({
@@ -146,6 +158,10 @@ export function DashboardMapView() {
     data.trafficHotspots?.forEach(hotspot => {
       const color = hotspot.congestionLevel > 1.5 ? '#FF4560' :
                    hotspot.congestionLevel > 1.0 ? '#FEB019' : '#00E396';
+      
+      // Different marker scales based on congestion level
+      const scale = hotspot.congestionLevel > 1.5 ? 15 : 
+                   hotspot.congestionLevel > 1.0 ? 12 : 8;
 
       const marker = new google.maps.Marker({
         position: hotspot.position,
@@ -153,10 +169,10 @@ export function DashboardMapView() {
         title: hotspot.name,
         icon: {
           path: google.maps.SymbolPath.CIRCLE,
-          scale: 8,
+          scale: scale,
           fillColor: color,
-          fillOpacity: 0.7,
-          strokeWeight: 2,
+          fillOpacity: 0.8,
+          strokeWeight: 3,
           strokeColor: '#ffffff'
         }
       });
@@ -166,21 +182,40 @@ export function DashboardMapView() {
           <div class="p-3 min-w-[200px]">
             <h3 class="font-semibold text-gray-900 mb-2">${hotspot.name}</h3>
             <div class="space-y-1 text-sm">
-              <p><span class="font-medium">Congestion:</span> ${Math.round(hotspot.congestionLevel * 100)}%</p>
-              <p><span class="font-medium">Vehicles:</span> ${hotspot.vehicleCount}</p>
-              <p><span class="font-medium">Status:</span>
-                <span class="px-2 py-1 rounded text-xs ${
+              <div class="flex justify-between">
+                <span class="font-medium">Congestion:</span>
+                <span class="font-bold" style="color: ${color}">
+                  ${Math.round(hotspot.congestionLevel * 100)}%
+                </span>
+              </div>
+              <div class="flex justify-between">
+                <span class="font-medium">Vehicles:</span>
+                <span class="font-bold">${hotspot.vehicleCount}</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="font-medium">Traffic Level:</span>
+                <span class="px-2 py-1 rounded text-xs font-medium ${
                   hotspot.congestionLevel > 1.5
                     ? 'bg-red-100 text-red-800'
                     : hotspot.congestionLevel > 1.0
                     ? 'bg-yellow-100 text-yellow-800'
                     : 'bg-green-100 text-green-800'
                 }">
-                  ${hotspot.congestionLevel > 1.5 ? 'Heavy Traffic' :
-                    hotspot.congestionLevel > 1.0 ? 'Moderate Traffic' : 'Light Traffic'}
+                  ${hotspot.congestionLevel > 1.5 ? 'SEVERE' :
+                    hotspot.congestionLevel > 1.0 ? 'MODERATE' : 'LIGHT'}
                 </span>
-              </p>
-              <p class="text-xs text-gray-500 mt-2">Click map to explore more</p>
+              </div>
+              <div class="flex justify-between mt-2">
+                <span class="font-medium">Status:</span>
+                <div class="flex items-center">
+                  <div class="w-2 h-2 rounded-full mr-1" style="background-color: ${color}"></div>
+                  <span class="text-xs">
+                    ${hotspot.congestionLevel > 1.5 ? 'Heavy Traffic' :
+                      hotspot.congestionLevel > 1.0 ? 'Moderate Traffic' : 'Light Traffic'}
+                  </span>
+                </div>
+              </div>
+              <p class="text-xs text-gray-500 mt-2 italic">Click other markers to compare traffic data</p>
             </div>
           </div>
         `

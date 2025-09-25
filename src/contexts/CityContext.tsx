@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, ReactNode } from 'react';
 
-const CITIES = ["thane", "borivali", "kharghar", "pune", "nashik", "panvel"] as const;
+const CITIES = ["thane", "borivali", "kharghar", "pune", "delhi-ncr", "panvel"] as const;
 type City = typeof CITIES[number];
 
 interface CityContextType {

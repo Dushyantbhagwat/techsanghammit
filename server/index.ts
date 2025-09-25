@@ -1,9 +1,14 @@
-import express from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
-import { User } from '../src/models/User';
+import { User } from './models/User';
 import jwt from 'jsonwebtoken';
+
+// Extend Request interface to include userId
+interface AuthenticatedRequest extends Request {
+  userId?: string;
+}
 
 dotenv.config();
 
@@ -12,8 +17,33 @@ const PORT = process.env.PORT || 5000;
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/smart-city';
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 
+// Configure CORS with specific origins
+const corsOptions = {
+  origin: function (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) {
+    const allowedOrigins = [
+      'http://localhost:5173',
+      'http://localhost:3000',
+      'http://127.0.0.1:5173',
+      process.env.FRONTEND_URL,
+      process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : undefined,
+    ].filter(Boolean);
+
+    // Allow requests with no origin (mobile apps, curl, etc)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+};
+
 // Middleware
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(express.json());
 
 // Connect to MongoDB
@@ -22,7 +52,7 @@ mongoose.connect(MONGODB_URI)
   .catch(err => console.error('MongoDB connection error:', err));
 
 // Auth Routes
-app.post('/api/auth/signup', async (req, res) => {
+app.post('/api/auth/signup', async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
 
@@ -62,7 +92,7 @@ app.post('/api/auth/signup', async (req, res) => {
   }
 });
 
-app.post('/api/auth/login', async (req, res) => {
+app.post('/api/auth/login', async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
 
@@ -99,7 +129,7 @@ app.post('/api/auth/login', async (req, res) => {
 });
 
 // Middleware to verify JWT token
-const verifyToken = (req: any, res: any, next: any) => {
+const verifyToken = (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   const token = req.headers.authorization?.split(' ')[1];
   if (!token) {
     return res.status(401).json({ message: 'No token provided' });
@@ -114,7 +144,7 @@ const verifyToken = (req: any, res: any, next: any) => {
   }
 };
 
-app.get('/api/auth/me', verifyToken, async (req: any, res) => {
+app.get('/api/auth/me', verifyToken, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const user = await User.findById(req.userId);
     if (!user) {
@@ -135,7 +165,7 @@ app.get('/api/auth/me', verifyToken, async (req: any, res) => {
   }
 });
 
-app.put('/api/auth/user', verifyToken, async (req: any, res) => {
+app.put('/api/auth/user', verifyToken, async (req: AuthenticatedRequest, res: Response) => {
   try {
     const user = await User.findById(req.userId);
     if (!user) {

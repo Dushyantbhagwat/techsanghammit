@@ -47,11 +47,36 @@ const StyledDrawer = styled(Drawer, {
   '& .MuiDrawer-paper': {
     width: collapsed ? COLLAPSED_WIDTH : DRAWER_WIDTH,
     boxSizing: 'border-box',
-    background: 'linear-gradient(180deg, #6C5DD3 0%, #4A3E99 50%, #3D2F7F 100%)',
-    borderRight: '1px solid rgba(255, 255, 255, 0.1)',
-    transition: theme.transitions.create('width', {
-      easing: theme.transitions.easing.sharp,
-      duration: theme.transitions.duration.enteringScreen,
+    // Glass morphism background
+    background: `
+      linear-gradient(
+        135deg,
+        rgba(255, 255, 255, 0.09) 0%,
+        rgba(255, 255, 255, 0.06) 25%,
+        rgba(255, 255, 255, 0.04) 50%,
+        rgba(255, 255, 255, 0.08) 75%,
+        rgba(255, 255, 255, 0.11) 100%
+      ),
+      linear-gradient(
+        180deg,
+        rgba(108, 93, 211, 0.15) 0%,
+        rgba(74, 62, 153, 0.12) 30%,
+        rgba(61, 47, 127, 0.10) 60%,
+        rgba(45, 35, 95, 0.08) 100%
+      )
+    `,
+    backdropFilter: 'blur(20px) saturate(1.8)',
+    WebkitBackdropFilter: 'blur(20px) saturate(1.8)',
+    borderRight: `1px solid rgba(255, 255, 255, 0.18)`,
+    borderImage: `linear-gradient(
+      180deg, 
+      rgba(255, 255, 255, 0.3) 0%,
+      rgba(255, 255, 255, 0.1) 50%,
+      rgba(255, 255, 255, 0.2) 100%
+    ) 1`,
+    transition: theme.transitions.create(['width', 'background'], {
+      easing: theme.transitions.easing.easeInOut,
+      duration: theme.transitions.duration.standard,
     }),
     overflowX: 'hidden',
     overflowY: 'auto',
@@ -62,6 +87,45 @@ const StyledDrawer = styled(Drawer, {
     position: 'fixed',
     left: 0,
     top: 0,
+    // Add subtle box shadow for depth
+    boxShadow: `
+      0 8px 32px rgba(108, 93, 211, 0.15),
+      0 4px 16px rgba(0, 0, 0, 0.08),
+      inset 0 1px 0 rgba(255, 255, 255, 0.15),
+      inset 0 -1px 0 rgba(255, 255, 255, 0.05)
+    `,
+    // Hide scrollbar completely
+    scrollbarWidth: 'none', // Firefox
+    msOverflowStyle: 'none', // IE/Edge
+    '&::-webkit-scrollbar': {
+      display: 'none', // Chrome, Safari, Opera
+      width: 0,
+    },
+    // Add animated gradient overlay on hover
+    '&::before': {
+      content: '""',
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      height: '100%',
+      background: `
+        linear-gradient(
+          135deg,
+          rgba(255, 255, 255, 0.05) 0%,
+          transparent 30%,
+          transparent 70%,
+          rgba(255, 255, 255, 0.03) 100%
+        )
+      `,
+      opacity: 0,
+      transition: 'opacity 0.3s ease',
+      pointerEvents: 'none',
+      zIndex: 1,
+    },
+    '&:hover::before': {
+      opacity: 1,
+    },
   },
 }));
 
@@ -70,17 +134,79 @@ const SidebarContent = styled(Box)({
   display: 'flex',
   flexDirection: 'column',
   position: 'relative',
+  zIndex: 2, // Above the animated overlay
+  // Add subtle inner glow
+  '&::before': {
+    content: '""',
+    position: 'absolute',
+    top: '20px',
+    left: '10px',
+    right: '10px',
+    height: '2px',
+    background: 'linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.4) 50%, transparent 100%)',
+    borderRadius: '1px',
+    opacity: 0.6,
+  },
+  '&::after': {
+    content: '""',
+    position: 'absolute',
+    bottom: '20px',
+    left: '10px',
+    right: '10px',
+    height: '1px',
+    background: 'linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.2) 50%, transparent 100%)',
+    borderRadius: '0.5px',
+    opacity: 0.4,
+  },
 });
 
 const NavigationSection = styled(Box)({
   flex: 1,
   width: '100%',
-  padding: '8px 4px',
+  padding: '12px 8px',
   overflowY: 'auto',
   overflowX: 'hidden',
   display: 'flex',
   flexDirection: 'column',
   alignItems: 'center',
+  position: 'relative',
+  // Enhanced scrollbar for better UX
+  '&::-webkit-scrollbar': {
+    width: '4px',
+  },
+  '&::-webkit-scrollbar-track': {
+    background: 'transparent',
+  },
+  '&::-webkit-scrollbar-thumb': {
+    background: 'rgba(255, 255, 255, 0.15)',
+    borderRadius: '2px',
+    transition: 'all 0.2s ease',
+    '&:hover': {
+      background: 'rgba(255, 255, 255, 0.25)',
+      width: '6px',
+    },
+  },
+  // Add subtle gradient separators
+  '&::before': {
+    content: '""',
+    position: 'absolute',
+    top: 0,
+    left: '16px',
+    right: '16px',
+    height: '1px',
+    background: 'linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.15) 50%, transparent 100%)',
+    opacity: 0.8,
+  },
+  '&::after': {
+    content: '""',
+    position: 'absolute',
+    bottom: 0,
+    left: '16px',
+    right: '16px',
+    height: '1px',
+    background: 'linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.1) 50%, transparent 100%)',
+    opacity: 0.6,
+  },
 });
 
 const CollapseButton = styled(IconButton)(({ theme }) => ({
@@ -231,14 +357,31 @@ export function EnhancedSidebar({ isOpen, onToggle, selectedCity, onCitySelect, 
               flexDirection: 'column',
               alignItems: isCollapsed ? 'center' : 'flex-start',
             }}>
-              {navigationItems.map((item) => (
-                <NavigationItem
+              {navigationItems.map((item, index) => (
+                <Box
                   key={item.path}
-                  icon={item.icon}
-                  label={item.label}
-                  path={item.path}
-                  isCollapsed={isCollapsed && !isMobile}
-                />
+                  sx={{
+                    width: '100%',
+                    animation: `fadeInUp 0.3s ease-out ${index * 0.05}s both`,
+                    '@keyframes fadeInUp': {
+                      '0%': {
+                        opacity: 0,
+                        transform: 'translateY(10px)',
+                      },
+                      '100%': {
+                        opacity: 1,
+                        transform: 'translateY(0)',
+                      },
+                    },
+                  }}
+                >
+                  <NavigationItem
+                    icon={item.icon}
+                    label={item.label}
+                    path={item.path}
+                    isCollapsed={isCollapsed && !isMobile}
+                  />
+                </Box>
               ))}
             </List>
           </NavigationSection>

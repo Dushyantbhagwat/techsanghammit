@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 import { fetchTrafficData, type LocationTrafficData } from '@/services/traffic';
 
-const CITIES = ['thane', 'borivali', 'kharghar', 'pune', 'nashik', 'panvel'];
+const CITIES = ['thane', 'borivali', 'kharghar', 'pune', 'delhi-ncr', 'panvel'];
 
 export function CityTrafficComparison() {
   const [cityData, setCityData] = useState<Record<string, LocationTrafficData>>({});
@@ -251,7 +251,7 @@ export function CityTrafficComparison() {
           <div>
             <h4 className="font-medium text-orange-500 mb-2">Religious Centers</h4>
             <ul className="space-y-1">
-              <li>• Nashik: Temple and pilgrimage traffic</li>
+              <li>• DELHI NCR: Temple and pilgrimage traffic</li>
               <li>• Early morning and evening peaks</li>
               <li>• Festival-based traffic variations</li>
             </ul>

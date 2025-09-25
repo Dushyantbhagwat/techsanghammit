@@ -270,7 +270,7 @@ const LOCATIONS: Record<string, Location> = {
       }
     ]
   },
-  "nashik": {
+  "delhi-ncr": {
     latitude: 19.9975,
     longitude: 73.7898,
     characteristics: {
@@ -297,7 +297,7 @@ const LOCATIONS: Record<string, Location> = {
       },
       {
         lat: 19.9965, lng: 73.7888,
-        name: "Nashik Road Station",
+        name: "DELHI NCR Road Station",
         baseMultiplier: 1.8,
         type: 'station',
         peakTimes: [7, 8, 17, 18]
@@ -410,7 +410,7 @@ const generateHourlyData = (location: string) => {
     else if (hour >= evening.start && hour <= evening.end) {
       multiplier = evening.intensity;
     }
-    // Additional peak (for cities like Pune with lunch rush, Nashik with temple hours)
+    // Additional peak (for cities like Pune with lunch rush, DELHI NCR with temple hours)
     else if (additional && hour >= additional.start && hour <= additional.end) {
       multiplier = additional.intensity;
     }

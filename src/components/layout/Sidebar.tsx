@@ -50,7 +50,7 @@ const denseAreas = [
   "borivali",
   "kharghar",
   "pune",
-  "nashik",
+  "delhi-ncr",
   "panvel"
 ] as const;
 

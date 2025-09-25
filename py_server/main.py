@@ -4,6 +4,7 @@ from car_detection import generate_frames, get_parking_status, detect_ambulance
 import cv2
 import threading
 import time
+import os
 from camera_config import get_camera_index, load_camera_config
 
 # Camera detection and configuration is now handled by camera_config.py
@@ -80,7 +81,28 @@ class Camera:
         self.cap.release()
 
 app = Flask(__name__)
-CORS(app)
+
+# Configure CORS with specific origins for security
+allowed_origins = [
+    'http://localhost:5173',
+    'http://localhost:3000', 
+    'http://127.0.0.1:5173',
+    os.getenv('FRONTEND_URL'),
+    f"https://{os.getenv('VERCEL_URL')}" if os.getenv('VERCEL_URL') else None
+]
+
+# Filter out None values
+allowed_origins = [origin for origin in allowed_origins if origin]
+
+# If no specific origins configured, allow localhost for development
+if not allowed_origins:
+    allowed_origins = ['http://localhost:5173', 'http://localhost:3000', 'http://127.0.0.1:5173']
+
+CORS(app, 
+     origins=allowed_origins,
+     allow_headers=['Content-Type', 'Authorization'],
+     methods=['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'])
+
 camera = Camera()
 
 @app.route('/video_feed')

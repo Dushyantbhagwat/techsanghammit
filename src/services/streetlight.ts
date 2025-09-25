@@ -401,8 +401,8 @@ const MOCK_DATA: Record<string, StreetLightData> = {
     ]
   ),
 
-  "nashik": generateCityLightingData(
-    "nashik",
+  "delhi-ncr": generateCityLightingData(
+    "delhi-ncr",
     {
       cityType: 'religious',
       populationDensity: 'high',
@@ -432,12 +432,12 @@ const MOCK_DATA: Record<string, StreetLightData> = {
     },
     [
       { name: "Trimbakeshwar Temple Road", type: 'temple', lightCount: 380, faultProneness: 3, energyEfficiency: 6, priorityLevel: 'critical', specialFeatures: ['Pilgrimage Lighting', 'Festival Ready', 'Traditional Design'] },
-      { name: "Nashik Road Station", type: 'station', lightCount: 320, faultProneness: 4, energyEfficiency: 5, priorityLevel: 'critical', specialFeatures: ['Heritage Station', 'Passenger Safety'] },
+      { name: "DELHI NCR Road Station", type: 'station', lightCount: 320, faultProneness: 4, energyEfficiency: 5, priorityLevel: 'critical', specialFeatures: ['Heritage Station', 'Passenger Safety'] },
       { name: "Gangapur Road Market", type: 'market', lightCount: 420, faultProneness: 3, energyEfficiency: 6, priorityLevel: 'high', specialFeatures: ['Market Hours Lighting', 'Vendor Support'] },
       { name: "CIDCO Industrial Area", type: 'industrial', lightCount: 480, faultProneness: 3, energyEfficiency: 7, priorityLevel: 'medium', specialFeatures: ['Industrial Grade', 'Shift Support'] },
       { name: "Panchavati Ghat", type: 'temple', lightCount: 280, faultProneness: 4, energyEfficiency: 5, priorityLevel: 'high', specialFeatures: ['Waterfront Lighting', 'Religious Significance'] },
       { name: "College Road Academic", type: 'residential', lightCount: 450, faultProneness: 2, energyEfficiency: 7, priorityLevel: 'medium', specialFeatures: ['Student Safety', 'Educational Zone'] },
-      { name: "Old Nashik Heritage", type: 'residential', lightCount: 370, faultProneness: 4, energyEfficiency: 5, priorityLevel: 'medium', specialFeatures: ['Heritage Preservation', 'Traditional Style'] }
+      { name: "Old DELHI NCR Heritage", type: 'residential', lightCount: 370, faultProneness: 4, energyEfficiency: 5, priorityLevel: 'medium', specialFeatures: ['Heritage Preservation', 'Traditional Style'] }
     ]
   ),
 

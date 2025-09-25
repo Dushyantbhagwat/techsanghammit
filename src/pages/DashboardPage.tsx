@@ -652,7 +652,26 @@ export function DashboardPage() {
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4">
             <div className="space-y-1">
               <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">
-                {selectedCity ? `${selectedCity} Dashboard` : 'City Dashboard'}
+                {selectedCity ? (
+                  <span>
+                    <span 
+                      className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 bg-clip-text text-transparent font-extrabold relative"
+                      style={{
+                        background: 'linear-gradient(135deg, #6366f1, #8b5cf6, #ec4899)',
+                        WebkitBackgroundClip: 'text',
+                        WebkitTextFillColor: 'transparent',
+                        backgroundClip: 'text',
+                        position: 'relative'
+                      }}
+                    >
+                      <span className="absolute inset-0 blur-sm bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent opacity-40"></span>
+                      <span className="relative z-10">
+                        {selectedCity.charAt(0).toUpperCase() + selectedCity.slice(1).toLowerCase()}
+                      </span>
+                    </span>
+                    {' Dashboard'}
+                  </span>
+                ) : 'City Dashboard'}
               </h1>
               <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
                 Real-time monitoring and analytics for {selectedCity || 'your city'}

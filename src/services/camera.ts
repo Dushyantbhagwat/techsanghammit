@@ -94,7 +94,7 @@ const trafficCameras: CameraData[] = [
   },
   {
     id: 7,
-    location: "Nashik",
+    location: "DELHI NCR",
     signalStatus: 'yellow',
     vehicleCount: 0,
     trafficDensity: 'low',
